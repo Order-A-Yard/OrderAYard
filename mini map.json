@@ -1,0 +1,102 @@
+"map":{
+
+"mapName":   "Mini Map",
+
+"mapImage":  "mini_map.png",
+“mapThumb”:  "mini_map_small.png",
+
+“mapWidth”:  506,
+“mapHeight”: 369,
+
+"connections": [
+{
+  "from":   1
+  "to":     2
+  "colour": "yellow"
+},
+{
+  "from":   2
+  "to":     3
+  "colour": "yellow"
+},
+{
+  "from":   3
+  "to":     4
+  "colour": "yellow"
+},
+{
+  "from":   4
+  "to":     5
+  "colour": "yellow"
+},
+{
+  "from":   5
+  "to":     6
+  "colour": "yellow"
+},
+{
+  "from":   6
+  "to":     7
+  "colour": "yellow"
+},
+{
+  "from":   1
+  "to":     7
+  "colour": "yellow"
+},
+{
+  "from":   1
+  "to":     3
+  "colour": "green"
+},
+{
+  "from":   3
+  "to":     6
+  "colour": "green"
+},
+{
+  "from":   1
+  "to":     5
+  "colour": "red"
+}
+],
+
+"locations": [
+{
+  "location": 1,
+  "xPos": 56,
+  "yPos": 82
+},
+{
+  "location": 2,
+  "xPos": 223,
+  "yPos": 55
+},
+{
+  "location": 3,
+  "xPos": 352,
+  "yPos": 80
+},
+{
+  "location": 4,
+  "xPos": 435,
+  "yPos": 206
+},
+{
+  "location": 5,
+  "xPos": 361,
+  "yPos": 309
+},
+{
+  "location": 6,
+  "xPos": 199,
+  "yPos": 307
+},
+{
+  "location": 7,
+  "xPos": 79,
+  "yPos": 219
+}
+]
+
+}
