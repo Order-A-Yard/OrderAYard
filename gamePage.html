@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game - Scotland Yard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Left Side - Map -->
+        <div class="game-map-section">
+            <div class="game-map" id="gameMap">
+                <img src="placeholder-map.jpg" alt="Game Map" class="map-image">
+            </div>
+        </div>
+        
+        <!-- Right Side - Controls -->
+        <div class="game-controls-section">
+            <!-- Player Name -->
+            <div class="player-info">
+                <h2 id="playerName">Player 1</h2>
+            </div>
+            
+            <!-- View Map Button -->
+            <button class="view-map-button" onclick="viewLargerMap()">
+                🔍 View Larger Map
+            </button>
+            
+            <!-- Tickets Section -->
+            <div class="tickets-section">
+                <h3>Tickets</h3>
+                <div class="tickets-buttons">
+                    <button class="ticket-button bus" onclick="selectTicket('bus')" id="busTicket">
+                        🚌 Bus
+                        <span class="ticket-count">5</span>
+                    </button>
+                    <button class="ticket-button ebike" onclick="selectTicket('ebike')" id="ebikeTicket">
+                        🚴 E-Bike
+                        <span class="ticket-count">3</span>
+                    </button>
+                    <button class="ticket-button taxi" onclick="selectTicket('taxi')" id="taxiTicket">
+                        🚕 Taxi
+                        <span class="ticket-count">8</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Position and Move Section -->
+            <div class="position-move-section">
+                <div class="position-display">
+                    <label>Current Position:</label>
+                    <div class="position-value" id="currentPosition">45</div>
+                </div>
+                <button class="make-move-button" onclick="makeMove()">
+                    Make Move
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for Larger Map View -->
+    <div id="mapModal" class="map-modal">
+        <div class="map-modal-content">
+            <span class="map-modal-close" onclick="closeMapModal()">&times;</span>
+            <img src="placeholder-map.jpg" alt="Full Map" class="map-modal-image">
+        </div>
+    </div>
+
+    <script>
+        let selectedTicketType = null;
+        let ticketCounts = {
+            bus: 5,
+            ebike: 3,
+            taxi: 8
+        };
+
+        function selectTicket(ticketType) {
+            // Remove selection from all tickets
+            document.querySelectorAll('.ticket-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Select the clicked ticket
+            const ticketButton = document.getElementById(ticketType + 'Ticket');
+            
+            if (selectedTicketType === ticketType) {
+                // Deselect if clicking the same ticket
+                selectedTicketType = null;
+            } else {
+                // Select new ticket
+                selectedTicketType = ticketType;
+                ticketButton.classList.add('selected');
+            }
+        }
+
+        function makeMove() {
+            if (!selectedTicketType) {
+                alert('Please select a ticket type first!');
+                return;
+            }
+            
+            if (ticketCounts[selectedTicketType] <= 0) {
+                alert('No tickets remaining for this type!');
+                return;
+            }
+            
+            // Decrease ticket count
+            ticketCounts[selectedTicketType]--;
+            updateTicketDisplay();
+            
+            // Simulate move (update position)
+            const currentPos = parseInt(document.getElementById('currentPosition').textContent);
+            const newPos = currentPos + Math.floor(Math.random() * 10) + 1;
+            document.getElementById('currentPosition').textContent = newPos;
+            
+            // Reset ticket selection
+            document.querySelectorAll('.ticket-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            selectedTicketType = null;
+            
+            alert(`Move made using ${selectedTicketType}! New position: ${newPos}`);
+        }
+
+        function updateTicketDisplay() {
+            document.querySelector('#busTicket .ticket-count').textContent = ticketCounts.bus;
+            document.querySelector('#ebikeTicket .ticket-count').textContent = ticketCounts.ebike;
+            document.querySelector('#taxiTicket .ticket-count').textContent = ticketCounts.taxi;
+        }
+
+        function viewLargerMap() {
+            document.getElementById('mapModal').style.display = 'flex';
+        }
+
+        function closeMapModal() {
+            document.getElementById('mapModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside the image
+        window.onclick = function(event) {
+            const modal = document.getElementById('mapModal');
+            if (event.target === modal) {
+                closeMapModal();
+            }
+        }
+    </script>
+</body>
+</html>

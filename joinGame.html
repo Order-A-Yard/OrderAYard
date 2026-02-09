@@ -1,0 +1,143 @@
+<!--Still need to add mr x button lh-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Game - Scotland Yard Website</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="host-game-container">
+            <h1>Join Game</h1>
+            
+            <!-- Name Input -->
+            <div class="form-group">
+                <label for="playerName">Enter Your Name:</label>
+                <input type="text" id="playerName" placeholder="Your name here..." />
+            </div>
+            
+            <!-- Color Selector -->
+            <div class="color-selector">
+                <label>Select Your Color:</label>
+                <button class="color-button" onclick="toggleColorWheel()">
+                    Choose Color
+                </button>
+                <div id="selectedColorDisplay" class="selected-color-display">
+                    No color selected
+                </div>
+                <div id="colorWheel" class="color-wheel">
+                    <div class="color-option" style="background-color: #FF0000;" onclick="selectColor('#FF0000', 'Red')"></div>
+                    <div class="color-option" style="background-color: #00FF00;" onclick="selectColor('#00FF00', 'Green')"></div>
+                    <div class="color-option" style="background-color: #0000FF;" onclick="selectColor('#0000FF', 'Blue')"></div>
+                    <div class="color-option" style="background-color: #FFFF00;" onclick="selectColor('#FFFF00', 'Yellow')"></div>
+                    <div class="color-option" style="background-color: #FF00FF;" onclick="selectColor('#FF00FF', 'Magenta')"></div>
+                    <div class="color-option" style="background-color: #00FFFF;" onclick="selectColor('#00FFFF', 'Cyan')"></div>
+                    <div class="color-option" style="background-color: #FFA500;" onclick="selectColor('#FFA500', 'Orange')"></div>
+                    <div class="color-option" style="background-color: #800080;" onclick="selectColor('#800080', 'Purple')"></div>
+                </div>
+                
+                <!-- Additional Button underneath color selector -->
+                <button class="color-button" onclick="refreshColors()" style="margin-top: 10px;">
+                    Refresh Available Colors
+                </button>
+            </div>
+            
+            <!-- Game Code Input -->
+            <div class="form-group">
+                <label for="gameCode">Enter Game Code:</label>
+                <input type="text" id="gameCode" placeholder="Enter 6-digit code..." maxlength="6" />
+            </div>
+            
+            <!-- Join Game Button -->
+            <button class="bottom-button" onclick="joinGame()">
+                Join Game
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedColor = null;
+
+        function toggleColorWheel() {
+            const colorWheel = document.getElementById('colorWheel');
+            colorWheel.classList.toggle('active');
+        }
+
+        function selectColor(colorCode, colorName) {
+            selectedColor = colorCode;
+            
+            // Update display
+            const display = document.getElementById('selectedColorDisplay');
+            display.textContent = `Selected: ${colorName}`;
+            display.style.backgroundColor = colorCode;
+            display.style.color = getContrastColor(colorCode);
+            
+            // Update selected state
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            // Close color wheel
+            setTimeout(() => {
+                document.getElementById('colorWheel').classList.remove('active');
+            }, 300);
+        }
+
+        function getContrastColor(hexColor) {
+            // Convert hex to RGB
+            const r = parseInt(hexColor.substr(1, 2), 16);
+            const g = parseInt(hexColor.substr(3, 2), 16);
+            const b = parseInt(hexColor.substr(5, 2), 16);
+            
+            // Calculate luminance
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            
+            return luminance > 0.5 ? '#000000' : '#FFFFFF';
+        }
+
+        function refreshColors() {
+            // Reset color selection
+            selectedColor = null;
+            const display = document.getElementById('selectedColorDisplay');
+            display.textContent = 'No color selected';
+            display.style.backgroundColor = '#f0f0f0';
+            display.style.color = '#000';
+            
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            alert('Available colors refreshed! Select your color again.');
+            // Add logic here to fetch available colors from server
+        }
+
+        function joinGame() {
+            const playerName = document.getElementById('playerName').value;
+            const gameCode = document.getElementById('gameCode').value;
+            
+            if (!playerName) {
+                alert('Please enter your name!');
+                return;
+            }
+            
+            if (!selectedColor) {
+                alert('Please select a color!');
+                return;
+            }
+            
+            if (!gameCode || gameCode.length !== 6) {
+                alert('Please enter a valid 6-digit game code!');
+                return;
+            }
+            
+            alert(`Joining game!\nPlayer: ${playerName}\nColor: ${selectedColor}\nGame Code: ${gameCode}`);
+            // Add your join game logic here
+        }
+    </script>
+</body>
+</html>
