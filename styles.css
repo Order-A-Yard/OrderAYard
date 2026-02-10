@@ -77,6 +77,11 @@ body {
     gap: 30px;
     align-items: center;
 }
+.host-game-container h1 {
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
 
 .form-group {
     width: 100%;
@@ -88,7 +93,7 @@ body {
 .form-group label {
     font-size: 16px;
     font-weight: bold;
-    color: #333;
+    color: #ffffff;
 }
 
 .form-group input {
@@ -109,6 +114,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    
+}
+.color-selector label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
 }
 
 .color-button {
@@ -325,7 +336,7 @@ body {
 
 .player-name {
     font-weight: bold;
-    color: #333;
+    color: #ffffff;
 }
 
 .player-row:not(.active) .player-name {
