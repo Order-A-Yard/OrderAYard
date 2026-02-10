@@ -95,11 +95,11 @@
         let isCurrentPlayerReady = false;
 
         // Initialize with some demo players
-        function initializeDemoPlayers() {
-            players[0] = { name: "Player 1", color: "#FF0000", ready: false };
-            players[1] = { name: "Player 2", color: "#0000FF", ready: false };
-            updatePlayersDisplay();
-        }
+        // function initializeDemoPlayers() {
+        //     players[0] = { name: "Player 1", color: "#FF0000", ready: false };
+        //     players[1] = { name: "Player 2", color: "#0000FF", ready: false };
+        //     updatePlayersDisplay();
+        // }
 
         function updatePlayersDisplay() {
             const rows = document.querySelectorAll('.player-row');
@@ -168,29 +168,53 @@
         }
 
         // Demo: Simulate other players joining and getting ready
-        function simulatePlayerJoin() {
-            const emptySlot = players.findIndex(p => p.name === null);
-            if (emptySlot !== -1) {
-                const colors = ['#00FF00', '#FFFF00', '#FF00FF', '#00FFFF'];
-                players[emptySlot] = {
-                    name: `Player ${emptySlot + 1}`,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    ready: false
-                };
-                updatePlayersDisplay();
-            }
-        }
+        // function simulatePlayerJoin() {
+        //     const emptySlot = players.findIndex(p => p.name === null);
+        //     if (emptySlot !== -1) {
+        //         const colors = ['#00FF00', '#FFFF00', '#FF00FF', '#00FFFF'];
+        //         players[emptySlot] = {
+        //             name: `Player ${emptySlot + 1}`,
+        //             color: colors[Math.floor(Math.random() * colors.length)],
+        //             ready: false
+        //         };
+        //         updatePlayersDisplay();
+        //     }
+        // }
 
-        function simulatePlayerReady() {
-            const unreadyPlayer = players.find(p => p.name !== null && !p.ready && players.indexOf(p) !== currentPlayerIndex);
-            if (unreadyPlayer) {
-                unreadyPlayer.ready = true;
-                updatePlayersDisplay();
-            }
-        }
+        // function simulatePlayerReady() {
+        //     const unreadyPlayer = players.find(p => p.name !== null && !p.ready && players.indexOf(p) !== currentPlayerIndex);
+        //     if (unreadyPlayer) {
+        //         unreadyPlayer.ready = true;
+        //         updatePlayersDisplay();
+        //     }
+        // }
 
         // Initialize on page load
-        initializeDemoPlayers();
+       function loadPlayersFromServer() { 
+        fetch('/api/players') 
+        .then(res => res.json()) 
+        .then(data => {
+            players = [ { name: null, color: null, ready: false },
+            { name: null, color: null, ready: false }, 
+            { name: null, color: null, ready: false }, 
+            { name: null, color: null, ready: false }, 
+            { name: null, color: null, ready: false }, 
+            { name: null, color: null, ready: false } 
+        ];
+
+        data.forEach((p, i) => { 
+            if (i < 6) { 
+                players[i].name = p.name; 
+                players[i].color = p.color; 
+            } 
+        });
+
+        updatePlayersDisplay();
+    
+        setInterval(loadPlayersFromServer, 2000);
+       });
+    }
     </script>
-</body>
+    </body>
+
 </html>
