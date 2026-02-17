@@ -94,34 +94,64 @@
             }
         }
 
-        function makeMove() {
-            if (!selectedTicketType) {
-                alert('Please select a ticket type first!');
-                return;
-            }
+        //Updated movement function to send move request to server - Ethan
+        async function makeMove() { 
+            if (!selectedTicketType) { 
+                alert("Please select a ticket type first!"); 
+                return; 
+            } 
+            const destination = prompt("Enter destination location:"); 
+            if (!destination) return;
+            const playerId = window.currentPlayerId; 
+            const gameID = window.currentGameId; 
             
-            if (ticketCounts[selectedTicketType] <= 0) {
-                alert('No tickets remaining for this type!');
-                return;
-            }
+            const response = await fetch(`http://YOURSERVER/players/${playerId}/moves`, { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json" }, 
+                body: JSON.stringify({ 
+                    gameID, 
+                    ticket: selectedTicketType, 
+                    destination: parseInt(destination)
+                 }) 
+            }); const data = await response.json(); 
             
-            // Decrease ticket count
-            ticketCounts[selectedTicketType]--;
-            updateTicketDisplay();
-            
-            // Simulate move (update position)
-            const currentPos = parseInt(document.getElementById('currentPosition').textContent);
-            const newPos = currentPos + Math.floor(Math.random() * 10) + 1;
-            document.getElementById('currentPosition').textContent = newPos;
-            
-            // Reset ticket selection
-            document.querySelectorAll('.ticket-button').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            selectedTicketType = null;
-            
-            alert(`Move made using ${selectedTicketType}! New position: ${newPos}`);
+            if (!response.ok) { 
+                alert(data.message); 
+                return; 
+            } 
+            document.getElementById("currentPosition").textContent = data.location;
+            alert("Move Successful"); 
         }
+
+        //PLACHOLDER CODE FOR MOVEMENT
+        // function makeMove() {
+        //     if (!selectedTicketType) {
+        //         alert('Please select a ticket type first!');
+        //         return;
+        //     }
+            
+        //     if (ticketCounts[selectedTicketType] <= 0) {
+        //         alert('No tickets remaining for this type!');
+        //         return;
+        //     }
+            
+        //     // Decrease ticket count
+        //     ticketCounts[selectedTicketType]--;
+        //     updateTicketDisplay();
+            
+        //     // Simulate move (update position)
+        //     const currentPos = parseInt(document.getElementById('currentPosition').textContent);
+        //     const newPos = currentPos + Math.floor(Math.random() * 10) + 1;
+        //     document.getElementById('currentPosition').textContent = newPos;
+            
+        //     // Reset ticket selection
+        //     document.querySelectorAll('.ticket-button').forEach(btn => {
+        //         btn.classList.remove('selected');
+        //     });
+        //     selectedTicketType = null;
+            
+        //     alert(`Move made using ${selectedTicketType}! New position: ${newPos}`);
+        // }
 
         function updateTicketDisplay() {
             document.querySelector('#busTicket .ticket-count').textContent = ticketCounts.bus;
