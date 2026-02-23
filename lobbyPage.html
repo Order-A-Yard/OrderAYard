@@ -22,7 +22,7 @@
                 
                 <div class="game-code-section">
                     <h2>Game Code</h2>
-                    <div class="game-code-display" id="gameCodeDisplay">ABC123</div>
+                    <div class="game-code-display" id="gameCodeDisplay">PlaceHolder</div>
                     <p class="game-code-instruction">Share this code with other players</p>
                 </div>
             </div>
@@ -75,8 +75,12 @@
             
             <!-- Ready/Start Button -->
             <button class="lobby-action-button" id="readyButton" onclick="toggleReady()">
+            
                 Ready
-            </button>
+            </button >
+        <button href="/gamePage" class="lobby-action-button" id="readyButton" onclick="play()">
+        Start Game
+            </button >
         </div>
     </div>
     <script src="lobbyPage.js"></script>
@@ -138,6 +142,7 @@
             // Toggle current player's ready status
             isCurrentPlayerReady = !isCurrentPlayerReady;
             players[currentPlayerIndex].ready = isCurrentPlayerReady;
+            
             
             updatePlayersDisplay();
         }
@@ -214,6 +219,7 @@
         setInterval(loadPlayersFromServer, 2000);
        });
     }
+    function play() { window.location.href = "/gamePage.html"; }
     </script>
     </body>
 

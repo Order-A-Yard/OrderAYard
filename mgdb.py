@@ -19,9 +19,6 @@ sessionusers = db["sessionusers"]
 def main():
     return render_template('mainpage.html')
 
-@app.route('/gamepage')
-def gamePage():
-    return render_template('gamePage.html')
 
 @app.route('/hostgame', methods=['GET', 'POST'])
 def accohostunt():
@@ -37,6 +34,12 @@ def accohostunt():
 @app.route('/joingame')
 def Join():
     return render_template('joinGame.html')
+
+
+@app.route('/gamePage', methods=['GET', 'POST', 'PUT', 'DEL', 'PATCH'])
+def play():
+    all_players = list(players.find())
+    return render_template('gamePage.html',players=all_players)
 
 
 
