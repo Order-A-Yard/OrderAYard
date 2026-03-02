@@ -538,13 +538,13 @@ body {
     background-color: #27ae60;
 }
 
-/* Bus ticket - for blue routes */
+/* Bus ticket - for red routes */
 .ticket-button.bus {
-    background-color: #3498db;
+    background-color: #e74c3c;
 }
 
 .ticket-button.bus:hover {
-    background-color: #2980b9;
+    background-color: #c0392b;
 }
 
 .ticket-button.selected {
