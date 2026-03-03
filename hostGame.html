@@ -27,8 +27,7 @@
                     No color selected
                 </div>
                 <div id="colorWheel" class="color-wheel">
-                    
-                    <div class="color-option" style="background-color: #FF0000;" onclick="selectColor('#FF0000', 'Red', this)"> </div>
+         
                     <div class="color-option" style="background-color: #FF0000;" onclick="selectColor('#FF0000', 'Red', this)"> </div>
                     <div class="color-option" style="background-color: #00FF00;" onclick="selectColor('#00FF00', 'Green', this)"></div>
                     <div class="color-option" style="background-color: #0000FF;" onclick="selectColor('#0000FF', 'Blue', this)"></div>
@@ -41,12 +40,12 @@
             </div>
             
             <!-- Bottom Button -->
-            <button href="/lobbyPage" class="bottom-button" onclick="startGame()" >
+            <button href="/lobbyPage" class="bottom-button" id="startButton" onclick="startGame()" >
                 Start Game
             </button>
         </div>
     </div>
-
+    <script src="hostGame.js"></script>
     <script>
         let selectedColor = null;
 

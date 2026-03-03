@@ -34,15 +34,21 @@
 #         return {"status": "ok"}
 #     return render_template('hostGame.html')
 
-# @app.route('/joingame')
-# def Join():
-#     return render_template('joinGame.html')
+@app.route('/joingame')
+def Join():
+    return render_template('joinGame.html')
+
+
+@app.route('/gamePage', methods=['GET', 'POST', 'PUT', 'DEL', 'PATCH'])
+def play():
+    all_players = list(players.find())
+    return render_template('gamePage.html',players=all_players)
 
 
 
-# @app.route('/lobbypage', methods=['GET', 'POST', 'PUT', 'DEL', 'PATCH'])
-# def lobby():
-#     all_players = list(players.find())
+@app.route('/gamePage', methods=['GET', 'POST', 'PUT', 'DEL', 'PATCH'])
+def play():
+    all_players = list(players.find())
     
 #     return render_template('lobbyPage.html', players=all_players)
    
