@@ -1,38 +1,38 @@
-# from flask import Flask, render_template, request, redirect, url_for
-# from pymongo import MongoClient
-# from bson.objectid import ObjectId
-# from bson.errors import InvalidId
+from flask import Flask, render_template, request, redirect, url_for
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+from bson.errors import InvalidId
 
-# app = Flask(__name__)
+app = Flask(__name__)
 
-# # MongoDB configuration
-# client = MongoClient("mongodb+srv://<db_username>:<db_password>@orderayard.pv0zwkr.mongodb.net/")
-# db = client["OrderAYard"]
-# game = db["game"]
-# lobbyusers = db["lobbyusers"]
-# players = db["players"]
-# sessionusers = db["sessionusers"]
+# MongoDB configuration
+client = MongoClient("mongodb+srv://<db_username>:<db_password>@orderayard.pv0zwkr.mongodb.net/")
+db = client["OrderAYard"]
+game = db["game"]
+lobbyusers = db["lobbyusers"]
+players = db["players"]
+sessionusers = db["sessionusers"]
 
 # # {{ url_for('foldername', filename='file')}}
 # # 1. routes for separate pages
-# @app.route('/')
-# def main():
-#     return render_template('mainpage.html')
+@app.route('/')
+def main():
+    return render_template('mainpage.html')
 
-# @app.route('/gamepage')
-# def gamePage():
-#     return render_template('gamePage.html')
+@app.route('/gamepage')
+def gamePage():
+    return render_template('gamePage.html')
 
-# @app.route('/hostgame', methods=['GET', 'POST'])
-# def accohostunt():
-#     if request.method == 'POST':
-#         data = request.get_json()
-#         players.insert_one({
-#             "name": data["name"],
-#             "color": data["color"]
-#         })
-#         return {"status": "ok"}
-#     return render_template('hostGame.html')
+@app.route('/hostgame', methods=['GET', 'POST'])
+def accohostunt():
+    if request.method == 'POST':
+        data = request.get_json()
+        players.insert_one({
+            "name": data["name"],
+            "color": data["color"]
+        })
+        return {"status": "ok"}
+    return render_template('hostGame.html')
 
 @app.route('/joingame')
 def Join():
@@ -46,11 +46,11 @@ def play():
 
 
 
-@app.route('/gamePage', methods=['GET', 'POST', 'PUT', 'DEL', 'PATCH'])
+@app.route('/lobbypage', methods=['GET', 'POST', 'PUT', 'DEL', 'PATCH'])
 def play():
     all_players = list(players.find())
     
-#     return render_template('lobbyPage.html', players=all_players)
+    return render_template('lobbyPage.html', players=all_players)
    
 #     # if request.method == 'POST':
 
@@ -87,11 +87,11 @@ def play():
     
 
 
-# @app.route('/api/players')
-# def get_players():
-#     all_players = list(players.find({}, {"_id": 0}))
-#     return jsonify(all_players)
+@app.route('/api/players')
+def get_players():
+    all_players = list(players.find({}, {"_id": 0}))
+    return jsonify(all_players)
 
     
-# if __name__ == '__main__':
-#    app.run(debug=True)
+if __name__ == '__main__':
+   app.run(debug=True)

@@ -673,3 +673,16 @@ body {
         font-size: 14px;
     }
 }
+
+.movement-log-section {
+    margin-top: 20px;
+}
+
+.movement-log {
+    background: #f4f4f4;
+    border: 1px solid #ccc;
+    height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    font-size: 14px;
+}
