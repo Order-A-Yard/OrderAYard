@@ -143,7 +143,6 @@ document.getElementById('gameCodeDisplay').textContent = gameId;
 document.getElementById('startButton').addEventListener("click", function(){
     fetch(`http://trinity-developments.co.uk/games/${gameId}/start/${playerID}`, {
         method: 'PATCH',
-        //mode: 'no-cors', //TEMPORARY FIX THIS MEANS WE CANT READ RESPONSE FROM SERvER ASK NICK ABOUT CORS STUFF ON SERVER. THIS SHOULD BE A PATCH REQUEST BUT HAS BEEN CHANGED TO POST AS CORS BLOCKING DOES NOT ALLOW PATCH
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             message: "Lobby closed, Game started",
@@ -153,6 +152,12 @@ document.getElementById('startButton').addEventListener("click", function(){
     })
     .then(response => {
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    })
+    .then(data => {
+        console.log("Server response:", data);
+        localStorage.setItem('playerName', data.playerName);
+        localStorage.setItem('playerID', data.playerId);
+        localStorage.setItem('gameId', gameCode);
         window.location.href = '/gamePage.html';
     })
 })

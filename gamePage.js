@@ -1,4 +1,7 @@
-
+const gameId = localStorage.getItem('gameId');
+const playerID = localStorage.getItem('playerID')//used to make moves
+const playerName = localStorage.getItem('playerName')//not exactly necessary for functionality it would just be nice to incorporate usernames so its easier to tell who is who
+        
         let selectedTicketType = null;
         let ticketCounts = {
             bus: 5,
