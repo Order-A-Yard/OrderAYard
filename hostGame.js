@@ -6,7 +6,7 @@ document.getElementById('startButton').addEventListener('click', function() {
             name: "JS Test POST3",
             mapId: 1,
             gameLength: "short"
-        })   
+        })
     })
     .then(res => res.json())
     .then(data => {

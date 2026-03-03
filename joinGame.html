@@ -53,7 +53,7 @@
             </div>
             
             <!-- Join Game Button -->
-            <button class="bottom-button" onclick="joinGame()">
+            <button class="bottom-button" id="bottom-button">
                 Join Game
             </button>
         </div>
@@ -116,28 +116,8 @@
             // Add logic here to fetch available colors from server
         }
 
-        function joinGame() {
-            const playerName = document.getElementById('playerName').value;
-            const gameCode = document.getElementById('gameCode').value;
-            
-            if (!playerName) {
-                alert('Please enter your name!');
-                return;
-            }
-            
-            if (!selectedColor) {
-                alert('Please select a color!');
-                return;
-            }
-            
-            if (!gameCode || gameCode.length !== 6) {
-                alert('Please enter a valid 6-digit game code!');
-                return;
-            }
-            
-            alert(`Joining game!\nPlayer: ${playerName}\nColor: ${selectedColor}\nGame Code: ${gameCode}`);
-            // Add your join game logic here
-        }
+        
     </script>
+    <script src="joinGame.js" defer></script>
 </body>
 </html>
