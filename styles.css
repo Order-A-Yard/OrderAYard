@@ -531,11 +531,11 @@ body {
 }
 
 .ticket-button.taxi {
-    background-color: #f39c12;
+    background-color: #3498db;
 }
 
 .ticket-button.taxi:hover {
-    background-color: #e67e22;
+    background-color: #2980b9;
 }
 
 .ticket-button.selected {

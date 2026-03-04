@@ -122,21 +122,47 @@
             // Each connection has: from (start), to (end), colour (route type)
             // Colors: yellow = taxi, green = e-bike, red = bus
             connections: [
-                // Yellow (taxi) connections - main routes
-                { from: 1, to: 2, colour: "yellow" },
-                { from: 2, to: 3, colour: "yellow" },
-                { from: 3, to: 4, colour: "yellow" },
-                { from: 4, to: 5, colour: "yellow" },
-                { from: 5, to: 6, colour: "yellow" },
-                { from: 6, to: 7, colour: "yellow" },
-                { from: 1, to: 7, colour: "yellow" },
+                //Backup
+                // // Yellow (taxi) connections - main routes
+                // { from: 1, to: 2, colour: "yellow" },
+                // { from: 2, to: 3, colour: "yellow" },
+                // { from: 3, to: 4, colour: "yellow" },
+                // { from: 4, to: 5, colour: "yellow" },
+                // { from: 5, to: 6, colour: "yellow" },
+                // { from: 6, to: 7, colour: "yellow" },
+                // { from: 1, to: 7, colour: "yellow" },
+                
+                // // Green (e-bike) connections
+                // { from: 1, to: 3, colour: "green" },
+                // { from: 3, to: 6, colour: "green" },
+                
+                // // Red (bus) connection
+                // { from: 1, to: 5, colour: "red" }
+
+                //  // Blue (taxi) connections - main routes
+                
+                { from: 3, to: 25, colour: "blue" },
+                { from: 6, to: 12, colour: "blue" },
                 
                 // Green (e-bike) connections
-                { from: 1, to: 3, colour: "green" },
-                { from: 3, to: 6, colour: "green" },
+               
+                { from: 6, to: 9, colour: "green" },
                 
                 // Red (bus) connection
-                { from: 1, to: 5, colour: "red" }
+                { from: 1, to: 5, colour: "red" },
+                { from: 1, to: 2, colour: "red" },
+                { from: 2, to: 3, colour: "red" },
+                { from: 2, to: 7, colour: "red" },
+                { from: 3, to: 4, colour: "red" },
+                { from: 4, to: 5, colour: "red" },
+                { from: 4, to: 8, colour: "red" },
+                { from: 5, to: 6, colour: "red" },
+                { from: 5, to: 9, colour: "red" },    
+                { from: 6, to: 7, colour: "red" },
+                { from: 6, to: 11, colour: "red" },
+                
+
+
             ],
             
             // All map locations with PERCENTAGE coordinates
@@ -144,13 +170,127 @@
             // Based on mini map image size: 506 x 369 pixels
             // Using percentages so markers scale with the image
             locations: [
-                { location: 1, xPos: 11.07, yPos: 22.22, name: "Location 1" },
-                { location: 2, xPos: 44.07, yPos: 14.91, name: "Location 2" },
-                { location: 3, xPos: 69.57, yPos: 21.68, name: "Location 3" },
-                { location: 4, xPos: 85.97, yPos: 55.83, name: "Location 4" },
-                { location: 5, xPos: 71.34, yPos: 83.74, name: "Location 5" },
-                { location: 6, xPos: 39.33, yPos: 83.20, name: "Location 6" },
-                { location: 7, xPos: 15.61, yPos: 59.35, name: "Location 7" }
+                // { location: 1, xPos: 11.07, yPos: 22.22, name: "Location 1" },
+                // { location: 2, xPos: 44.07, yPos: 14.91, name: "Location 2" },
+                // { location: 3, xPos: 69.57, yPos: 21.68, name: "Location 3" },
+                // { location: 4, xPos: 85.97, yPos: 55.83, name: "Location 4" },
+                // { location: 5, xPos: 71.34, yPos: 83.74, name: "Location 5" },
+                // { location: 6, xPos: 39.33, yPos: 83.20, name: "Location 6" },
+                // { location: 7, xPos: 15.61, yPos: 59.35, name: "Location 7" },
+                { location: 1, xPos: 30, yPos: 4, name: "Location 2" },
+                { location: 2, xPos: 27.2, yPos: 11.5, name: "Location 2" },
+                { location: 3, xPos: 29.4, yPos: 11.5, name: "Location 3" },
+                { location: 4, xPos: 31.3, yPos: 11.4, name: "Location 4" },
+                { location: 5, xPos: 33.5, yPos: 9.5, name: "Location 5" },
+                { location: 6, xPos: 35.6, yPos: 13, name: "Location 6" },
+                { location: 8, xPos: 11.07, yPos: 22.22, name: "Location 7" },
+                { location: 9, xPos: 44.07, yPos: 14.91, name: "Location 8" },
+                { location: 10, xPos: 69.57, yPos: 21.68, name: "Location 9" },
+                { location: 11, xPos: 85.97, yPos: 55.83, name: "Location 10" },
+                { location: 12, xPos: 71.34, yPos: 83.74, name: "Location 11" },
+                { location: 13, xPos: 39.33, yPos: 83.20, name: "Location 12" },
+                { location: 14, xPos: 11.07, yPos: 22.22, name: "Location 13" },
+                { location: 15, xPos: 44.07, yPos: 14.91, name: "Location 14" },
+                { location: 16, xPos: 69.57, yPos: 21.68, name: "Location 15" },
+                { location: 17, xPos: 85.97, yPos: 55.83, name: "Location 16" },
+                { location: 18, xPos: 71.34, yPos: 83.74, name: "Location 17" },
+                { location: 19, xPos: 39.33, yPos: 83.20, name: "Location 18" },
+                { location: 20, xPos: 11.07, yPos: 22.22, name: "Location 19" },
+                { location: 21, xPos: 44.07, yPos: 14.91, name: "Location 20" },
+                { location: 22, xPos: 69.57, yPos: 21.68, name: "Location 21" },
+                { location: 23, xPos: 85.97, yPos: 55.83, name: "Location 22" },
+                { location: 24, xPos: 71.34, yPos: 83.74, name: "Location 23" },
+                { location: 25, xPos: 39.33, yPos: 83.20, name: "Location 24" },
+                { location: 26, xPos: 11.07, yPos: 22.22, name: "Location 25" },
+                { location: 27, xPos: 44.07, yPos: 14.91, name: "Location 26" },
+                { location: 28, xPos: 69.57, yPos: 21.68, name: "Location 27" },
+                { location: 29, xPos: 85.97, yPos: 55.83, name: "Location 28" },
+                { location: 30, xPos: 71.34, yPos: 83.74, name: "Location 29" },
+                { location: 31, xPos: 39.33, yPos: 83.20, name: "Location 30" },
+                { location: 32, xPos: 11.07, yPos: 22.22, name: "Location 31" },
+                { location: 33, xPos: 44.07, yPos: 14.91, name: "Location 32" },
+                { location: 34, xPos: 69.57, yPos: 21.68, name: "Location 33" },
+                { location: 35, xPos: 85.97, yPos: 55.83, name: "Location 34" },
+                { location: 36, xPos: 71.34, yPos: 83.74, name: "Location 35" },
+                { location: 37, xPos: 11.07, yPos: 22.22, name: "Location 37" },
+                { location: 38, xPos: 44.07, yPos: 14.91, name: "Location 38" },
+                { location: 39, xPos: 69.57, yPos: 21.68, name: "Location 39" },
+                { location: 40, xPos: 85.97, yPos: 55.83, name: "Location 40" },
+                { location: 41, xPos: 71.34, yPos: 83.74, name: "Location 41" },
+                { location: 42, xPos: 39.33, yPos: 83.20, name: "Location 42" },
+                { location: 43, xPos: 11.07, yPos: 22.22, name: "Location 43" },
+                { location: 44, xPos: 44.07, yPos: 14.91, name: "Location 44" },
+                { location: 45, xPos: 69.57, yPos: 21.68, name: "Location 45" },
+                { location: 46, xPos: 85.97, yPos: 55.83, name: "Location 46" },
+                { location: 47, xPos: 71.34, yPos: 83.74, name: "Location 47" },
+                { location: 48, xPos: 39.33, yPos: 83.20, name: "Location 48" },
+                { location: 49, xPos: 11.07, yPos: 22.22, name: "Location 49" },
+                { location: 50, xPos: 44.07, yPos: 14.91, name: "Location 50" },
+                { location: 51, xPos: 69.57, yPos: 21.68, name: "Location 51" },
+                { location: 52, xPos: 85.97, yPos: 55.83, name: "Location 52" },
+                { location: 53, xPos: 71.34, yPos: 83.74, name: "Location 53" },
+                { location: 54, xPos: 39.33, yPos: 83.20, name: "Location 54" },
+                { location: 55, xPos: 11.07, yPos: 22.22, name: "Location 55" },
+                { location: 56, xPos: 44.07, yPos: 14.91, name: "Location 56" },
+                { location: 57, xPos: 69.57, yPos: 21.68, name: "Location 57" },
+                { location: 58, xPos: 85.97, yPos: 55.83, name: "Location 58" },
+                { location: 59, xPos: 71.34, yPos: 83.74, name: "Location 59" },
+                { location: 60, xPos: 39.33, yPos: 83.20, name: "Location 60" },
+                { location: 61, xPos: 11.07, yPos: 22.22, name: "Location 61" },
+                { location: 62, xPos: 44.07, yPos: 14.91, name: "Location 62" },
+                { location: 63, xPos: 69.57, yPos: 21.68, name: "Location 63" },
+                { location: 64, xPos: 85.97, yPos: 55.83, name: "Location 64" },
+                { location: 65, xPos: 71.34, yPos: 83.74, name: "Location 65" },
+                { location: 66, xPos: 39.33, yPos: 83.20, name: "Location 66" },
+                { location: 67, xPos: 11.07, yPos: 22.22, name: "Location 67" },
+                { location: 68, xPos: 44.07, yPos: 14.91, name: "Location 68" },
+                { location: 69, xPos: 69.57, yPos: 21.68, name: "Location 69" },
+                { location: 70, xPos: 85.97, yPos: 55.83, name: "Location 70" },
+                { location: 71, xPos: 71.34, yPos: 83.74, name: "Location 71" },
+                { location: 72, xPos: 39.33, yPos: 83.20, name: "Location 72" },
+                { location: 73, xPos: 11.07, yPos: 22.22, name: "Location 73" },
+                { location: 74, xPos: 44.07, yPos: 14.91, name: "Location 74" },
+                { location: 75, xPos: 69.57, yPos: 21.68, name: "Location 75" },
+                { location: 76, xPos: 85.97, yPos: 55.83, name: "Location 76" },
+                { location: 77, xPos: 71.34, yPos: 83.74, name: "Location 77" },
+                { location: 78, xPos: 39.33, yPos: 83.20, name: "Location 78" },
+                { location: 79, xPos: 11.07, yPos: 22.22, name: "Location 79" },
+                { location: 80, xPos: 44.07, yPos: 14.91, name: "Location 80" },
+                { location: 81, xPos: 69.57, yPos: 21.68, name: "Location 81" },
+                { location: 82, xPos: 85.97, yPos: 55.83, name: "Location 82" },
+                { location: 83, xPos: 71.34, yPos: 83.74, name: "Location 83" },
+                { location: 84, xPos: 39.33, yPos: 83.20, name: "Location 84" },
+                { location: 85, xPos: 11.07, yPos: 22.22, name: "Location 85" },
+                { location: 86, xPos: 44.07, yPos: 14.91, name: "Location 86" },
+                { location: 87, xPos: 69.57, yPos: 21.68, name: "Location 87" },
+                { location: 88, xPos: 85.97, yPos: 55.83, name: "Location 88" },
+                { location: 89, xPos: 71.34, yPos: 83.74, name: "Location 89" },
+                { location: 90, xPos: 39.33, yPos: 83.20, name: "Location 90" },
+                { location: 91, xPos: 11.07, yPos: 22.22, name: "Location 91" },
+                { location: 92, xPos: 44.07, yPos: 14.91, name: "Location 92" },
+                { location: 93, xPos: 69.57, yPos: 21.68, name: "Location 93" },
+                { location: 94, xPos: 85.97, yPos: 55.83, name: "Location 94" },
+                { location: 95, xPos: 71.34, yPos: 83.74, name: "Location 95" },
+                { location: 96, xPos: 39.33, yPos: 83.20, name: "Location 96" },
+                { location: 97, xPos: 11.07, yPos: 22.22, name: "Location 97" },
+                { location: 98, xPos: 44.07, yPos: 14.91, name: "Location 98" },
+                { location: 99, xPos: 69.57, yPos: 21.68, name: "Location 99" },
+                { location: 100, xPos: 85.97, yPos: 55.83, name: "Location 100" },
+                { location: 101, xPos: 71.34, yPos: 83.74, name: "Location 101" },
+                { location: 102, xPos: 39.33, yPos: 83.20, name: "Location 102" },
+                { location: 103, xPos: 11.07, yPos: 22.22, name: "Location 103" },
+                { location: 104, xPos: 44.07, yPos: 14.91, name: "Location 104" },
+                { location: 105, xPos: 69.57, yPos: 21.68, name: "Location 105" },
+                { location: 106, xPos: 85.97, yPos: 55.83, name: "Location 106" },
+                { location: 107, xPos: 71.34, yPos: 83.74, name: "Location 107" },
+                { location: 108, xPos: 39.33, yPos: 83.20, name: "Location 108" },
+                { location: 109, xPos: 11.07, yPos: 22.22, name: "Location 109" },
+                { location: 110, xPos: 44.07, yPos: 14.91, name: "Location 110" },
+                { location: 111, xPos: 69.57, yPos: 21.68, name: "Location 111" },
+                { location: 112, xPos: 85.97, yPos: 55.83, name: "Location 112" },
+                { location: 113, xPos: 71.34, yPos: 83.74, name: "Location 113" },
+               
+              
             ]
         };
 
@@ -165,7 +305,7 @@
            - Blue lines  = Bus routes
            ============================================================ */
         const ticketTypeMap = {
-            yellow: 'taxi',     // Yellow routes require taxi tickets
+            blue: 'taxi',     // blue routes require taxi tickets
             green: 'ebike',     // Green routes require e-bike tickets
             red: 'bus'          // Red routes require bus tickets
         };

@@ -44,8 +44,8 @@
            ======================================== */
         .location-marker {
             position: absolute;
-            width: 28px;
-            height: 28px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;     /* Makes it circular */
             background: rgba(255, 255, 255, 0.85);
             border: 2px solid #333;
@@ -63,7 +63,7 @@
         
         /* Single color markers */
         .location-marker.taxi-only {
-            background: #f1c40f; /* Yellow for taxi */
+            background: #3498db; /* Blue for taxi */
             color: #333;
             text-shadow: none;
         }
@@ -76,10 +76,10 @@
         
         /* Two color markers - split in half */
         .location-marker.taxi-ebike {
-            background: linear-gradient(135deg, #f1c40f 50%, #2ecc71 50%);
+            background: linear-gradient(135deg, #3498db 50%, #2ecc71 50%);
         }
         .location-marker.taxi-bus {
-            background: linear-gradient(135deg, #f1c40f 50%, #e74c3c 50%);
+            background: linear-gradient(135deg, #3498db 50%, #e74c3c 50%);
         }
         .location-marker.ebike-bus {
             background: linear-gradient(135deg, #2ecc71 50%, #e74c3c 50%);
@@ -87,7 +87,7 @@
         
         /* All three colors marker - tri-split */
         .location-marker.all-transport {
-            background: conic-gradient(#f1c40f 0deg 120deg, #2ecc71 120deg 240deg, #e74c3c 240deg 360deg);
+            background: conic-gradient(#3498db 0deg 120deg, #2ecc71 120deg 240deg, #e74c3c 240deg 360deg);
         }
         
         /* Hover effect - slight scale up */
