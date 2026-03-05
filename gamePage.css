@@ -1,0 +1,149 @@
+
+        /* ========================================
+           GAME MAP CONTAINER
+           Parent element for positioning pieces
+           ======================================== */
+        .game-map {
+            position: relative;
+        }
+        
+        /* ========================================
+           PLAYER PIECE STYLES
+           The draggable token representing the player.
+           Uses absolute positioning within the map.
+           ======================================== */
+        .player-piece {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;           /* Shows grab cursor on hover */
+            z-index: 100;           /* Keeps piece above location markers */
+            transition: left 0.3s ease, top 0.3s ease; /* Smooth movement animation */
+            user-select: none;      /* Prevents text selection while dragging */
+            transform: translate(-50%, -50%); /* Centers piece on coordinates */
+        }
+        
+        /* Player piece appearance while being dragged */
+        .player-piece.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        /* ========================================
+           LOCATION MARKER STYLES
+           The numbered circles on the map that
+           players can click or drop their piece on.
+           Colors show available transport types:
+           - Red = Taxi
+           - Green = E-Bike
+           - Blue = Bus
+           ======================================== */
+        .location-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;     /* Makes it circular */
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transform: translate(-50%, -50%); /* Centers marker on coordinates */
+            transition: all 0.2s ease;
+            color: white;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+        }
+        
+        /* Single color markers */
+        .location-marker.taxi-only {
+            background: #3498db; /* Blue for taxi */
+            color: #333;
+            text-shadow: none;
+        }
+        .location-marker.ebike-only {
+            background: #2ecc71; /* Green for e-bike */
+        }
+        .location-marker.bus-only {
+            background: #e74c3c; /* Red for bus */
+        }
+        
+        /* Two color markers - split in half */
+        .location-marker.taxi-ebike {
+            background: linear-gradient(135deg, #3498db 50%, #2ecc71 50%);
+        }
+        .location-marker.taxi-bus {
+            background: linear-gradient(135deg, #3498db 50%, #e74c3c 50%);
+        }
+        .location-marker.ebike-bus {
+            background: linear-gradient(135deg, #2ecc71 50%, #e74c3c 50%);
+        }
+        
+        /* All three colors marker - tri-split */
+        .location-marker.all-transport {
+            background: conic-gradient(#3498db 0deg 120deg, #2ecc71 120deg 240deg, #e74c3c 240deg 360deg);
+        }
+        
+        /* Hover effect - slight scale up */
+        .location-marker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 50;
+        }
+        
+        /* VALID DROP STATE
+           Bright glow when player CAN move to this location */
+        .location-marker.valid-drop {
+            box-shadow: 0 0 15px #4CAF50, 0 0 25px #4CAF50;
+            transform: translate(-50%, -50%) scale(1.3);
+            border-color: #4CAF50;
+        }
+        
+        /* INVALID DROP STATE
+           Red glow when player CANNOT move to this location */
+        .location-marker.invalid-drop {
+            box-shadow: 0 0 15px #f44336;
+            border-color: #f44336;
+        }
+        
+        /* CURRENT POSITION STATE
+           Gold ring for the marker where player is standing */
+        .location-marker.current {
+            border: 3px solid gold;
+            box-shadow: 0 0 10px gold;
+        }
+        
+        /* ========================================
+           ERROR TOAST NOTIFICATION
+           Popup message that appears at bottom of
+           screen when player makes invalid action.
+           Auto-fades after 3 seconds.
+           ======================================== */
+        .error-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f44336;    /* Red background for errors */
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 1000;          /* Above everything else */
+            animation: fadeInOut 3s ease;
+        }
+        
+        /* Fade in/out animation for toast */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+ 

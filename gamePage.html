@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game - Scotland Yard</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="gamePage.css">
     <script src="gamePage.js" defer></script>
 </head>
 <body>
@@ -12,9 +13,27 @@
         <!-- Left Side - Map -->
         <div class="game-map-section">
             <div class="game-map" id="gameMap">
-                <img src="OrderAYard.png" alt="Game Map" class="map-image">
+                <img src="OrderAYardFinalMap.png" alt="Game Map" class="map-image">
+                <!-- COORDINATE CAPTURE PANEL -->
+                <div id="capturePanel" style="position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.9); color:white; padding:15px; border-radius:8px; font-family:monospace; font-size:12px; z-index:200; max-width:280px;">
+                    <div style="font-weight:bold; margin-bottom:10px;">📍 Coordinate Capture Tool</div>
+                    <div>Next Location: <span id="nextLocationId" style="color:#4CAF50; font-weight:bold;">1</span></div>
+                    <div id="coordDisplay" style="margin:8px 0;">Click on map to capture position</div>
+                    <div style="margin-top:10px;">
+                        <button onclick="undoLastCapture()" style="padding:5px 10px; margin-right:5px; cursor:pointer;">↩ Undo</button>
+                        <button onclick="exportCoordinates()" style="padding:5px 10px; cursor:pointer;">📋 Copy JSON</button>
+                    </div>
+                    <div id="capturedList" style="margin-top:10px; max-height:150px; overflow-y:auto; font-size:10px;"></div>
+                </div>
+                
+                <div id="capturedMarkers"></div>
+                 <div id="playerPiece" class="player-piece" draggable="true">
+                    🔵
+                </div>
+                <div id="locationMarkers"></div>
             </div>
         </div>
+    
         
         <!-- Right Side - Controls -->
         <div class="game-controls-section">
@@ -36,15 +55,15 @@
                 <div class="tickets-buttons">
                     <button class="ticket-button bus" onclick="selectTicket('bus')" id="busTicket">
                         🚌 Bus
-                        <span class="ticket-count">5</span>
+                        <span class="ticket-count">10</span>
                     </button>
                     <button class="ticket-button ebike" onclick="selectTicket('ebike')" id="ebikeTicket">
                         🚴 E-Bike
-                        <span class="ticket-count">3</span>
+                        <span class="ticket-count">5</span>
                     </button>
                     <button class="ticket-button taxi" onclick="selectTicket('taxi')" id="taxiTicket">
                         🚕 Taxi
-                        <span class="ticket-count">8</span>
+                        <span class="ticket-count">3</span>
                     </button>
                 </div>
             </div>
@@ -71,9 +90,9 @@
     <div id="mapModal" class="map-modal">
         <div class="map-modal-content">
             <span class="map-modal-close" onclick="closeMapModal()">&times;</span>
-            <img src="placeholder-map.jpg" alt="Full Map" class="map-modal-image">
+            <img src="OrderAYardFinalMap.png" alt="Full Map" class="map-modal-image">
         </div>
-    </div>
+    </div> 
 
     
 </body>
