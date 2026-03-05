@@ -144,20 +144,16 @@ document.getElementById('startButton').addEventListener("click", function(){
     fetch(`http://trinity-developments.co.uk/games/${gameId}/start/${playerID}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            message: "Lobby closed, Game started",
-            gameId: "${gameId}",
-            state: "fugitive"
-        })
     })
     .then(response => {
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        return response.json();
     })
     .then(data => {
         console.log("Server response:", data);
         localStorage.setItem('playerName', data.playerName);
         localStorage.setItem('playerID', data.playerId);
-        localStorage.setItem('gameId', gameCode);
+        localStorage.setItem('gameId', gameId);
         window.location.href = '/gamePage.html';
     })
 })

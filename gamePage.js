@@ -1,6 +1,13 @@
 const gameId = localStorage.getItem('gameId');
 const playerID = localStorage.getItem('playerID')//used to make moves
 const playerName = localStorage.getItem('playerName')//not exactly necessary for functionality it would just be nice to incorporate usernames so its easier to tell who is who
+//players loaded from server (IMPLEMENTED AFTER LOCAL FUNCTIONALITY, MAY CAUSE ISSUES WITH GAMEPLAY)
+const players = data.players.map(player => ({
+    id: player.playerId,
+    name: player.playerName,
+    colour: player.colour,
+    location: player.location
+}));
 
 /* ============================================================
 COORDINATE CAPTURE TOOL
@@ -667,6 +674,7 @@ function executeMove(newPosition) {
             "destination": `${destination}`,
         })
     })
+    loadPlayersFromServer();
     
     console.log(`Moved to ${newPosition} using ${usedTicket}`);
 }
@@ -755,8 +763,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// TODO: Uncomment to load player data from server
-// loadPlayersFromServer();
+
+function loadPlayersFromServer(){
+    //this part needs to get list of all players and save their IDs as local variables
+    fetch(`http://trinity-developments.co.uk/games/${gameId}/players`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json'},
+    })
+    .then(response => response.json())
+    .then(data => {
+        // save all players from the response
+        const players = data.players.map(player => ({
+            id: player.playerId,
+            name: player.playerName,
+            colour: player.colour,
+            location: player.location
+        }));
+        players.forEach(player => {
+            console.log(`Player ${player.name} is at ${player.location}`);
+        });
+    })
+}
 
 // let selectedTicketType = null;
 // let ticketCounts = {
