@@ -6,12 +6,12 @@
   "mapHeight": 5700,
   "connections": [
 
-    { "from": 97,    "to": 108,   "colour": "black"  },
+    { "from": 97,    "to": 106,   "colour": "black"  },
     { "from": 97,    "to": 101,   "colour": "black"  },
     { "from": 97,    "to": 104,   "colour": "black"  },
-    { "from": 101,   "to": 108,   "colour": "black"  },
+    { "from": 101,   "to": 106,   "colour": "black"  },
     { "from": 101,   "to": 104,   "colour": "black"  },
-    { "from": 104,   "to": 108,   "colour": "black"  },
+    { "from": 104,   "to": 106,   "colour": "black"  },
 
     { "from": 3,    "to": 25,   "colour": "blue"  },
     { "from": 6,    "to": 12,   "colour": "blue"  },
@@ -186,6 +186,7 @@
     { "from": 87,   "to": 89,   "colour": "red"   },
     { "from": 87,   "to": 88,   "colour": "red"   },
     { "from": 90,   "to": 91,   "colour": "red"   },
+    { "from": 91,   "to": 92,   "colour": "red"   },
     { "from": 91,   "to": 92,   "colour": "red"   },
     { "from": 92,   "to": 93,   "colour": "red"   },
     { "from": 92,   "to": 113,   "colour": "red"   },

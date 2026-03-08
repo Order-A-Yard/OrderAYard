@@ -74,38 +74,38 @@
             container.appendChild(marker);
         }
         
-        function undoLastCapture() {
-            if (capturedLocations.length === 0) return;
+        // function undoLastCapture() {
+        //     if (capturedLocations.length === 0) return;
             
-            capturedLocations.pop();
-            nextLocationId--;
+        //     capturedLocations.pop();
+        //     nextLocationId--;
             
-            const marker = document.getElementById('marker-' + nextLocationId);
-            if (marker) marker.remove();
+        //     const marker = document.getElementById('marker-' + nextLocationId);
+        //     if (marker) marker.remove();
             
-            document.getElementById('nextLocationId').textContent = nextLocationId;
-            document.getElementById('coordDisplay').innerHTML = 
-                nextLocationId > 1 ? `Undone. Next: #${nextLocationId}` : 'Click on map to capture position';
-            updateCapturedList();
-        }
+        //     document.getElementById('nextLocationId').textContent = nextLocationId;
+        //     document.getElementById('coordDisplay').innerHTML = 
+        //         nextLocationId > 1 ? `Undone. Next: #${nextLocationId}` : 'Click on map to capture position';
+        //     updateCapturedList();
+        // }
         
-        function updateCapturedList() {
-            const list = document.getElementById('capturedList');
-            list.innerHTML = capturedLocations.map(loc => 
-                `<div>#${loc.location}: (${loc.xPos}%, ${loc.yPos}%)</div>`
-            ).join('');
-        }
+        // function updateCapturedList() {
+        //     const list = document.getElementById('capturedList');
+        //     list.innerHTML = capturedLocations.map(loc => 
+        //         `<div>#${loc.location}: (${loc.xPos}%, ${loc.yPos}%)</div>`
+        //     ).join('');
+        // }
         
-        function exportCoordinates() {
-            const json = JSON.stringify(capturedLocations, null, 2);
-            navigator.clipboard.writeText(json).then(() => {
-                alert('Coordinates copied to clipboard! Paste them into mapData.locations array.');
-            });
-            console.log('Captured Locations:', json);
-        }
+        // function exportCoordinates() {
+        //     const json = JSON.stringify(capturedLocations, null, 2);
+        //     navigator.clipboard.writeText(json).then(() => {
+        //         alert('Coordinates copied to clipboard! Paste them into mapData.locations array.');
+        //     });
+        //     console.log('Captured Locations:', json);
+        // }
         
         // Initialize capture mode when page loads
-        document.addEventListener('DOMContentLoaded', initCaptureMode);
+        // document.addEventListener('DOMContentLoaded', initCaptureMode);
         
         /* ============================================================
            MAP DATA
@@ -210,7 +210,7 @@
            that connects to this location.
            ============================================================ */
         function getLocationTransports(locationId) {
-            const transports = { taxi: false, ebike: false, bus: false };
+            const transports = { taxi: false, ebike: false, bus: false, boat: false };
             
             mapData.connections.forEach(conn => {
                 if (conn.from === locationId || conn.to === locationId) {
@@ -230,20 +230,30 @@
            transport types (red=taxi, green=ebike, blue=bus).
            ============================================================ */
         function getMarkerColorClass(transports) {
-            const { taxi, ebike, bus } = transports;
+            const { taxi, ebike, bus, boat } = transports;
             
-            // All three transports
-            if (taxi && ebike && bus) return 'all-transport';
+            // Four transports
+            if (taxi && ebike && bus && boat) return 'all-transport';
+            
+            // Three transports
+            if (taxi && ebike && bus) return 'taxi-ebike-bus';
+            if (taxi && ebike && boat) return 'taxi-ebike-boat';
+            if (taxi && bus && boat) return 'taxi-bus-boat';
+            if (ebike && bus && boat) return 'ebike-bus-boat';
             
             // Two transports
             if (taxi && ebike) return 'taxi-ebike';
             if (taxi && bus) return 'taxi-bus';
+            if (taxi && boat) return 'taxi-boat';
             if (ebike && bus) return 'ebike-bus';
+            if (ebike && boat) return 'ebike-boat';
+            if (bus && boat) return 'bus-boat';
             
             // Single transport
             if (taxi) return 'taxi-only';
             if (ebike) return 'ebike-only';
             if (bus) return 'bus-only';
+            if (boat) return 'boat-only';
             
             return ''; // No transports (shouldn't happen)
         }
@@ -528,6 +538,7 @@
             document.querySelector('#taxiTicket .ticket-count').textContent = ticketCounts.taxi;
             document.querySelector('#ebikeTicket .ticket-count').textContent = ticketCounts.ebike;
             document.querySelector('#busTicket .ticket-count').textContent = ticketCounts.bus;
+            document.querySelector('#boatTicket .ticket-count').textContent = ticketCounts.boat;
         }
 
         /* ============================================================
