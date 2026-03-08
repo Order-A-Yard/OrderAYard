@@ -150,7 +150,8 @@
         const ticketTypeMap = {
             blue: 'taxi',     // blue routes require taxi tickets
             green: 'ebike',     // Green routes require e-bike tickets
-            red: 'bus'          // Red routes require bus tickets
+            red: 'bus',        // Red routes require bus tickets
+            black: 'boat'      // Black routes require boat tickets
         };
 
         /* ============================================================
@@ -160,20 +161,30 @@
            - selectedTicketType: Which ticket is currently selected
            - ticketCounts: How many of each ticket the player has
            ============================================================ */
-        let currentPosition = 1;        // Player starts at location 1
+        let currentPosition = 1;        // Will be randomized after mapData loads
         let selectedTicketType = null;  // No ticket selected initially
         let ticketCounts = {
-            taxi: 10,    // Taxi for red routes (most common)
+            taxi: 3,     // Taxi for red routes
             ebike: 5,    // E-bike for green routes
-            bus: 3       // Bus for blue routes
+            bus: 10,      // Bus for blue routes (most common)
+            boat: 6       // Boat for black routes
         };
 
-        /* ============================================================
+        function chooseRandomStartPosition() {
+            if (!mapData || !Array.isArray(mapData.locations) || mapData.locations.length === 0) {
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * mapData.locations.length);
+            currentPosition = mapData.locations[randomIndex].location;
+        }
+
+        /* 
            TICKET SELECTION FUNCTION
            Called when player clicks a ticket button.
            Highlights the selected ticket and stores the selection.
            Clicking same ticket again deselects it.
-           ============================================================ */
+       */
         function selectTicket(ticketType) {
             // Remove selection from all tickets first
             document.querySelectorAll('.ticket-button').forEach(btn => {
@@ -556,6 +567,8 @@
                     console.error('[Map] mapData is null after load – markers will not render.');
                     return;
                 }
+
+                chooseRandomStartPosition();
 
                 // Create all location markers and set up the map
                 initializeMapLocations();
