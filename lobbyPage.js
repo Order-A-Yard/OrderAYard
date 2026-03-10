@@ -1,7 +1,10 @@
 const gameId = localStorage.getItem('gameId');
-const playerID = localStorage.getItem('playerID')
+const playerId = localStorage.getItem('playerId');  // Fixed: was 'playerID', hostGame.js stores as 'playerId'
+const playerName = localStorage.getItem('playerName');
+const playerColor = localStorage.getItem('playerColor');
+const isHost = localStorage.getItem('isHost') === 'true';
 
-document.getElementById('gameCodeDisplay').textContent = gameId;
+document.getElementById('gameCodeDisplay').textContent = gameId || 'No Game ID';
 
         // Game state
         let players = [
@@ -13,8 +16,19 @@ document.getElementById('gameCodeDisplay').textContent = gameId;
             { name: null, color: null, ready: false }
         ];
         
-        let currentPlayerIndex = 0; // The current user's player index
+        let currentPlayerIndex = -1; // Will be set when we find our player
         let isCurrentPlayerReady = false;
+
+        // Initialize the current player from localStorage temporarily until server data loads
+        if (playerName && playerColor) {
+            // Show current player in first slot temporarily
+            players[0] = { name: playerName, color: playerColor, ready: false };
+            currentPlayerIndex = 0;
+            updatePlayersDisplay();
+            
+            // Then load all players from server
+            loadPlayersFromServer();
+        }
 
         // Initialize with some demo players
         // function initializeDemoPlayers() {
@@ -25,12 +39,16 @@ document.getElementById('gameCodeDisplay').textContent = gameId;
 
         function updatePlayersDisplay() {
             const rows = document.querySelectorAll('.player-row');
+            console.log('updatePlayersDisplay called, found', rows.length, 'rows');
+            console.log('Players to display:', JSON.stringify(players));
             
             rows.forEach((row, index) => {
                 const player = players[index];
                 const nameCell = row.querySelector('.player-name');
                 const colorCell = row.querySelector('.color-indicator');
                 const readyCell = row.querySelector('.player-ready');
+                
+                console.log(`Row ${index}: player =`, player, 'nameCell =', nameCell);
                 
                 if (player.name) {
                     nameCell.textContent = player.name;
@@ -112,36 +130,71 @@ document.getElementById('gameCodeDisplay').textContent = gameId;
         //     }
         // }
 
-        // Initialize on page load
-       function loadPlayersFromServer() { 
-        fetch('/api/players') 
-        .then(res => res.json()) 
-        .then(data => {
-            players = [ { name: null, color: null, ready: false },
-            { name: null, color: null, ready: false }, 
-            { name: null, color: null, ready: false }, 
-            { name: null, color: null, ready: false }, 
-            { name: null, color: null, ready: false }, 
-            { name: null, color: null, ready: false } 
-        ];
+        // Initialize on page load - fetch players from server
+        let pollingInterval = null;
+        
+        function loadPlayersFromServer() { 
+            if (!gameId) {
+                console.error('No gameId found');
+                return;
+            }
+            
+            fetch(`http://trinity-developments.co.uk/games/${gameId}/players`) 
+            .then(res => {
+                if (!res.ok) throw new Error(`Server error: ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                console.log('Server returned players:', data); // Debug log
+                
+                // Reset players array
+                players = [ 
+                    { name: null, color: null, ready: false },
+                    { name: null, color: null, ready: false }, 
+                    { name: null, color: null, ready: false }, 
+                    { name: null, color: null, ready: false }, 
+                    { name: null, color: null, ready: false }, 
+                    { name: null, color: null, ready: false } 
+                ];
 
-        data.forEach((p, i) => { 
-            if (i < 6) { 
-                players[i].name = p.name; 
-                players[i].color = p.color; 
-            } 
-        });
+                // Populate with server data
+                data.forEach((p, i) => { 
+                    console.log(`Player ${i}:`, p); // Debug log each player
+                    if (i < 6) { 
+                        players[i].name = p.playerName || p.name;
+                        players[i].color = p.color || '#808080'; // Default to gray if no color
+                        players[i].ready = p.ready || false;
+                        
+                        // Find current player's index by matching playerId
+                        if (p.playerId === playerId || p.playerName === playerName) {
+                            currentPlayerIndex = i;
+                            isCurrentPlayerReady = p.ready || false;
+                            // Ensure our color is shown (use local color for current player only)
+                            if (playerColor) {
+                                players[i].color = playerColor;
+                            }
+                        }
+                    } 
+                });
+                
+                console.log('Final players array:', players); // Debug log
 
-        updatePlayersDisplay();
-    
-        setInterval(loadPlayersFromServer, 2000);
-       });
-    }
+                updatePlayersDisplay();
+        
+                // Start polling if not already started
+                if (!pollingInterval) {
+                    pollingInterval = setInterval(loadPlayersFromServer, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading players:', error);
+            });
+        }
     function play() { window.location.href = "/gamePage.html"; }
     
 
 document.getElementById('startButton').addEventListener("click", function(){
-    fetch(`http://trinity-developments.co.uk/games/${gameId}/start/${playerID}`, {
+    fetch(`http://trinity-developments.co.uk/games/${gameId}/start/${playerId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
     })
@@ -152,7 +205,7 @@ document.getElementById('startButton').addEventListener("click", function(){
     .then(data => {
         console.log("Server response:", data);
         localStorage.setItem('playerName', data.playerName);
-        localStorage.setItem('playerID', data.playerId);
+        localStorage.setItem('playerId', data.playerId);
         localStorage.setItem('gameId', gameId);
         window.location.href = '/gamePage.html';
     })

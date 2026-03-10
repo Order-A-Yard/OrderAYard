@@ -17,11 +17,22 @@ document.getElementById("bottom-button").addEventListener("click", function(){
         return;
     }
 
+    if (!gameCode) {
+        alert('Please enter a game code!');
+        return;
+    }
+
+    // Disable button to prevent double-click
+    const joinButton = document.getElementById('bottom-button');
+    joinButton.disabled = true;
+    joinButton.textContent = 'Joining game...';
+
     fetch(`http://trinity-developments.co.uk/games/${gameCode}/players`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            playerName: playerName
+            playerName: playerName,
+            color: selectedColor
         })   
     })
     .then(response => {
@@ -30,9 +41,20 @@ document.getElementById("bottom-button").addEventListener("click", function(){
     })
     .then(data => {
         console.log("Server response:", data);
-        localStorage.setItem('playerName', data.playerName);
-        localStorage.setItem('playerID', data.playerId);
+        // Store player info in localStorage (matching hostGame.js format)
+        localStorage.setItem('playerId', data.playerId);  // lowercase 'd' to match hostGame.js
+        localStorage.setItem('playerName', playerName);
+        localStorage.setItem('playerColor', selectedColor);
         localStorage.setItem('gameId', gameCode);
+        localStorage.setItem('isHost', 'false');  // This player is not the host
         window.location.href = "/lobbyPage.html";
+    })
+    .catch(error => {
+        console.error('Error joining game:', error);
+        alert('Failed to join game. Please check the game code and try again.\n\n' + error.message);
+        
+        // Re-enable button
+        joinButton.disabled = false;
+        joinButton.textContent = 'Join Game';
     })
 })
