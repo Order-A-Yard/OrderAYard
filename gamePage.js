@@ -1,112 +1,5 @@
-
-         /* ============================================================
-           COORDINATE CAPTURE TOOL
-           Click on the map to capture stop positions.
-           ============================================================ */
-        let capturedLocations = [];
-        let nextLocationId = 1;
-        let captureMode = true; // Set to false when done capturing
-        
-        function initCaptureMode() {
-            const gameMap = document.getElementById('gameMap');
-            const mapInner = gameMap.querySelector('.map-inner');
-
-            // Listen on gameMap (map-inner is pointer-events:none so clicks fall through to here)
-            // Measure against mapInner — identical bounding rect to the image.
-            gameMap.addEventListener('click', function(e) {
-                if (!captureMode) return;
-                // Ignore clicks on interactive children (buttons, markers)
-                if (e.target.closest('button') || e.target.closest('.location-marker') || e.target.closest('.captured-marker')) return;
-
-                const rect = mapInner.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                // Clamp to 0-100 in case click lands on a border pixel
-                const xPercent = Math.max(0, Math.min(100, (x / rect.width * 100))).toFixed(2);
-                const yPercent = Math.max(0, Math.min(100, (y / rect.height * 100))).toFixed(2);
-                
-                // Store the location
-                capturedLocations.push({
-                    location: nextLocationId,
-                    xPos: parseFloat(xPercent),
-                    yPos: parseFloat(yPercent),
-                    name: "Location " + nextLocationId
-                });
-                
-                // Add visual marker
-                addCapturedMarker(nextLocationId, xPercent, yPercent);
-                
-                // Update display
-                document.getElementById('coordDisplay').innerHTML = 
-                    `Captured #${nextLocationId}: (${xPercent}%, ${yPercent}%)`;
-                nextLocationId++;
-                document.getElementById('nextLocationId').textContent = nextLocationId;
-                updateCapturedList();
-            });
-        }
-        
-        function addCapturedMarker(id, xPercent, yPercent) {
-            const container = document.getElementById('capturedMarkers');
-            const marker = document.createElement('div');
-            marker.className = 'captured-marker';
-            marker.id = 'marker-' + id;
-            marker.style.cssText = `
-                position: absolute;
-                left: ${xPercent}%;
-                top: ${yPercent}%;
-                width: 24px;
-                height: 24px;
-                background: #4CAF50;
-                border: 2px solid white;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 10px;
-                font-weight: bold;
-                color: white;
-                transform: translate(-50%, -50%);
-                z-index: 100;
-                pointer-events: none;
-            `;
-            marker.textContent = id;
-            container.appendChild(marker);
-        }
-        
-        // function undoLastCapture() {
-        //     if (capturedLocations.length === 0) return;
-            
-        //     capturedLocations.pop();
-        //     nextLocationId--;
-            
-        //     const marker = document.getElementById('marker-' + nextLocationId);
-        //     if (marker) marker.remove();
-            
-        //     document.getElementById('nextLocationId').textContent = nextLocationId;
-        //     document.getElementById('coordDisplay').innerHTML = 
-        //         nextLocationId > 1 ? `Undone. Next: #${nextLocationId}` : 'Click on map to capture position';
-        //     updateCapturedList();
-        // }
-        
-        // function updateCapturedList() {
-        //     const list = document.getElementById('capturedList');
-        //     list.innerHTML = capturedLocations.map(loc => 
-        //         `<div>#${loc.location}: (${loc.xPos}%, ${loc.yPos}%)</div>`
-        //     ).join('');
-        // }
-        
-        // function exportCoordinates() {
-        //     const json = JSON.stringify(capturedLocations, null, 2);
-        //     navigator.clipboard.writeText(json).then(() => {
-        //         alert('Coordinates copied to clipboard! Paste them into mapData.locations array.');
-        //     });
-        //     console.log('Captured Locations:', json);
-        // }
-        
-        // Initialize capture mode when page loads
-        // document.addEventListener('DOMContentLoaded', initCaptureMode);
-        
+const gameId = localStorage.getItem('gameId');
+const playerID = localStorage.getItem('playerID');
         /* ============================================================
            MAP DATA
            Loaded at runtime from "mini map.json".
@@ -650,59 +543,6 @@ window.onclick = function(event) {
         closeMapModal();
     }
 }
-
-        /* ============================================================
-           PAGE INITIALIZATION
-           Runs when the DOM is fully loaded:
-           - Fetches map data from mini map.json
-           - Sets up all location markers on the map
-           - Adds drag event listeners to player piece
-           - Displays starting position
-           ============================================================ */
-        document.addEventListener('DOMContentLoaded', () => {
-            // Load map data from JSON, then initialise everything that depends on it
-            loadMapData().then(() => {
-                if (!mapData) {
-                    console.error('[Map] mapData is null after load – markers will not render.');
-                    return;
-                }
-
-                chooseRandomStartPosition();
-
-                // Create all location markers and set up the map
-                initializeMapLocations();
-
-                // Set up drag events for the player piece
-                const playerPiece = document.getElementById('playerPiece');
-                playerPiece.addEventListener('dragstart', handleDragStart);
-                playerPiece.addEventListener('dragend', handleDragEnd);
-
-                // Show starting position in the UI
-                document.getElementById('currentPosition').textContent = currentPosition;
-            });
-
-            // === COORDINATE HELPER ===
-            // Click on the map to see and log percentage coordinates
-            // Use these values to position your markers correctly
-            const gameMap = document.getElementById('gameMap');
-            const coordDisplay = document.getElementById('coordDisplay');
-
-            gameMap.addEventListener('click', (e) => {
-                const rect = gameMap.getBoundingClientRect();
-                const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-                const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-
-                coordDisplay.innerHTML = `xPos: ${xPercent}, yPos: ${yPercent}<br><small>Ctrl+Shift+I to see console log</small>`;
-                console.log(`{ location: X, xPos: ${xPercent}, yPos: ${yPercent}, name: "NAME" },`);
-            });
-
-            gameMap.addEventListener('mousemove', (e) => {
-                const rect = gameMap.getBoundingClientRect();
-                const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-                const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-                coordDisplay.textContent = `Hover: ${xPercent}%, ${yPercent}%`;
-            });
-        });
 /* ============================================================
     PAGE INITIALIZATION
     Runs when the DOM is fully loaded:
@@ -711,8 +551,11 @@ window.onclick = function(event) {
     - Displays starting position
     ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-    // Create all location markers and set up the map
-    initializeMapLocations();
+    loadMapData().then(() => {
+        initializeMapLocations();
+        loadPlayersFromServer();
+        setInterval(loadPlayersFromServer, 3000);
+    });
     
     // Set up drag events for the player piece
     const playerPiece = document.getElementById('playerPiece');
@@ -745,8 +588,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-        
-
 function loadPlayersFromServer(){
     //this part needs to get list of all players and save their IDs as local variables
     fetch(`http://trinity-developments.co.uk/games/${gameId}/players`, {
@@ -762,10 +603,37 @@ function loadPlayersFromServer(){
             colour: player.colour,
             location: player.location
         }));
+
+        updateOtherPlayersOnMap(players);
         players.forEach(player => {
             console.log(`Player ${player.name} is at ${player.location}`);
         });
     })
+}
+
+function updateOtherPlayersOnMap(players) {
+    // Remove all existing other-player pieces first
+    document.querySelectorAll('.other-player-piece').forEach(piece => piece.remove());
+
+    players.forEach(player => {
+        // Skip the current player (they have their own piece)
+        if (player.id === parseInt(playerID)) return;
+
+        // Find location data for this player's position
+        const loc = mapData.locations.find(l => l.location === parseInt(player.location));
+        if (!loc) return; // skip if location is "Hidden" or invalid
+
+        // Create a piece for this player
+        const piece = document.createElement('div');
+        piece.className = 'other-player-piece';
+        piece.style.left = `${loc.xPos}%`;
+        piece.style.top = `${loc.yPos}%`;
+        piece.style.backgroundColor = player.colour;
+        piece.title = player.name; // tooltip on hover
+        piece.textContent = player.name.charAt(0); // first letter of name
+
+        document.getElementById('locationMarkers').appendChild(piece);
+    });
 }
 
 // let selectedTicketType = null;

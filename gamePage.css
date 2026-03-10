@@ -39,6 +39,22 @@
             user-select: none;      /* Prevents text selection while dragging */
             transform: translate(-50%, -50%); /* Centers piece on coordinates */
         }
+
+        .other-player-piece {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            pointer-events: auto; /* re-enable inside pointer-events:none .map-inner */
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;           /* Shows grab cursor on hover */
+            z-index: 100;           /* Keeps piece above location markers */
+            transition: left 0.3s ease, top 0.3s ease; /* Smooth movement animation */
+            user-select: none;      /* Prevents text selection while dragging */
+            transform: translate(-50%, -50%); /* Centers piece on coordinates */
+        }
         
         /* Player piece appearance while being dragged */
         .player-piece.dragging {
