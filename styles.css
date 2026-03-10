@@ -419,26 +419,49 @@ body {
     align-items: center;
     padding: 15px;
     background-color: #34495e;
+    min-width: 0; /* prevent flex overflow */
 }
 
+/* Outer wrapper: locks to the true image aspect ratio (6600×5700 = 22:19)
+   and shrinks to fit whichever axis runs out of space first.             */
 .game-map {
+    position: relative;
+    /* Use the real image ratio so the box is always the same shape */
+    aspect-ratio: 6600 / 5700;
+    /* Grow as wide as possible but never taller than the available height */
     width: 100%;
-    height: 100%;
+    max-width: calc((100vh - 30px) * (6600 / 5700));
+    max-height: calc(100vh - 30px);
     background-color: #fff;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.map-image {
+/* Inner wrapper: identical size to .game-map — ALL markers live here.
+   Because this exactly matches the image, %-based coordinates are always
+   relative to the image itself, not any letterbox padding.               */
+.map-inner {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    pointer-events: none; /* let clicks reach child markers */
+}
+
+/* The image fills the locked aspect-ratio box perfectly — no letterbox */
+.map-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill; /* box is already the right shape, so fill = no distortion */
+    display: block;
 }
 
 .game-controls-section {
     width: 320px;
-    display: flex;
+    display: flex;  
     flex-direction: column;
     padding: 20px;
     background-color: #02388B;
@@ -536,6 +559,21 @@ body {
 
 .ticket-button.taxi:hover {
     background-color: #2980b9;
+}
+
+.ticket-button.taxi {
+    background-color: #3498db;
+}
+
+.ticket-button.taxi:hover {
+    background-color: #2980b9;
+}
+.ticket-button.boat {
+    background-color: #000000;
+}
+
+.ticket-button.boat:hover {
+    background-color: #000000af;
 }
 
 .ticket-button.selected {

@@ -13,24 +13,31 @@
         <!-- Left Side - Map -->
         <div class="game-map-section">
             <div class="game-map" id="gameMap">
+                <!-- .map-inner is the same size as the image —
+                     ALL markers are children of this so % coords line up exactly -->
                 <img src="OrderAYardFinalMap.png" alt="Game Map" class="map-image">
-                <!-- COORDINATE CAPTURE PANEL -->
-                <div id="capturePanel" style="position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.9); color:white; padding:15px; border-radius:8px; font-family:monospace; font-size:12px; z-index:200; max-width:280px;">
-                    <div style="font-weight:bold; margin-bottom:10px;">📍 Coordinate Capture Tool</div>
-                    <div>Next Location: <span id="nextLocationId" style="color:#4CAF50; font-weight:bold;">1</span></div>
-                    <div id="coordDisplay" style="margin:8px 0;">Click on map to capture position</div>
-                    <div style="margin-top:10px;">
-                        <button onclick="undoLastCapture()" style="padding:5px 10px; margin-right:5px; cursor:pointer;">↩ Undo</button>
-                        <button onclick="exportCoordinates()" style="padding:5px 10px; cursor:pointer;">📋 Copy JSON</button>
+                <div class="map-inner">
+                    <!-- COORDINATE CAPTURE PANEL -->
+                    <!-- <div id="capturePanel" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.9); color:white; padding:15px; border-radius:8px; font-family:monospace; font-size:12px; z-index:200; max-width:280px;">
+                        <div style="font-weight:bold; margin-bottom:10px;">📍 Coordinate Capture Tool</div>
+                        <div>Next Location: <span id="nextLocationId" style="color:#4CAF50; font-weight:bold;">1</span></div>
+                        <div id="coordDisplay" style="margin:8px 0;">Click on map to capture position</div>
+                        <div style="margin-top:10px;">
+                            <button onclick="undoLastCapture()" style="padding:5px 10px; margin-right:5px; cursor:pointer;">↩ Undo</button>
+                            <button onclick="exportCoordinates()" style="padding:5px 10px; cursor:pointer;">📋 Copy JSON</button>
+                        </div>
+                        <div id="capturedList" style="margin-top:10px; max-height:150px; overflow-y:auto; font-size:10px;"></div>
+                    </div> -->
+                    <img id="captureToggle" src="OrderAYardLogo20262.png" style="position:absolute; top:-10px; right:-50px; width:300px; height:300px; cursor:pointer; z-index:200;" title="Toggle Coordinate Capture Tool">
+                    <div id="capturedMarkers"></div>
+                    <div id="playerPiece1" class="player-piece" draggable="true">
+                        🔵
                     </div>
-                    <div id="capturedList" style="margin-top:10px; max-height:150px; overflow-y:auto; font-size:10px;"></div>
+                    <div id="playerPiece" class="player-piece" draggable="true">
+                        🔵
+                    </div>
+                    <div id="locationMarkers"></div>
                 </div>
-                
-                <div id="capturedMarkers"></div>
-                 <div id="playerPiece" class="player-piece" draggable="true">
-                    🔵
-                </div>
-                <div id="locationMarkers"></div>
             </div>
         </div>
     
@@ -64,6 +71,10 @@
                     <button class="ticket-button taxi" onclick="selectTicket('taxi')" id="taxiTicket">
                         🚕 Taxi
                         <span class="ticket-count">3</span>
+                    </button>
+                    <button class="ticket-button boat" onclick="selectTicket('boat')" id="boatTicket">
+                        🚢 Boat
+                        <span class="ticket-count">6</span>
                     </button>
                 </div>
             </div>

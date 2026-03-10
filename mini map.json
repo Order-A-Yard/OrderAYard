@@ -1,132 +1,337 @@
-"map": [
+﻿
 {
-  "location": 1,
-  "name": "Location 1"
-},
-{
-  "location": 2,
-  "name": "Location 2"
-},
-{
-  "location": 3,
-  "name": "Location 3"
-},
-{
-  "location": 4,
-  "name": "Location 4"
-},
-{
-  "location": 5,
-  "name": "Location 5"
-},
-{
-  "location": 6,
-  "name": "Location 6"
-},
-{
-  "location": 7,
-  "name": "Location 7"
-}
-]
-{
+  "mapName":   "Main Map",
+  "mapImage":  "OrderAYardFinalMap.png",
+  "mapWidth":  6600,
+  "mapHeight": 5700,
+  "connections": [
 
-"mapName":   "Mini Map",
+    { "from": 97,    "to": 106,   "colour": "black"  },
+    { "from": 97,    "to": 101,   "colour": "black"  },
+    { "from": 97,    "to": 104,   "colour": "black"  },
+    { "from": 101,   "to": 106,   "colour": "black"  },
+    { "from": 101,   "to": 104,   "colour": "black"  },
+    { "from": 104,   "to": 106,   "colour": "black"  },
 
-"mapImage":  "mini_map.png",
-“mapThumb”:  "mini_map_small.png",
+    { "from": 3,    "to": 25,   "colour": "blue"  },
+    { "from": 6,    "to": 12,   "colour": "blue"  },
+    { "from": 13,   "to": 31,   "colour": "blue"  },
+    { "from": 19,   "to": 22,   "colour": "blue"  },
+    { "from": 23,   "to": 24,   "colour": "blue"  },
+    { "from": 28,   "to": 73,   "colour": "blue"  },
+    { "from": 40,   "to": 48,   "colour": "blue"  },
+    { "from": 58,   "to": 67,   "colour": "blue"  },
+    { "from": 59,   "to": 70,   "colour": "blue"  },
+    { "from": 61,   "to": 65 ,   "colour": "blue"   },
+    { "from": 74,   "to": 100,   "colour": "blue"   },
+    { "from": 77,   "to": 110,   "colour": "blue"   },
+    { "from": 78,   "to": 87,   "colour": "blue"   },
+    { "from": 79,   "to": 96,   "colour": "blue"   },
+    { "from": 80,   "to": 96,   "colour": "blue"   },
+    { "from": 80,   "to": 107,   "colour": "blue"   },
+    { "from": 83,   "to": 92,   "colour": "blue"   },
+    { "from": 85,   "to": 87,   "colour": "blue"   },
+    { "from": 89,   "to": 95,   "colour": "blue"   },
+    { "from": 96,   "to": 107,   "colour": "blue"   },
+    { "from": 107,   "to": 109,   "colour": "blue"   },
 
-“mapWidth”:  506,
-“mapHeight”: 369,
+    { "from": 6,    "to": 9,    "colour": "green" },
+    { "from": 14,   "to": 17,   "colour": "green" },
+    { "from": 15,   "to": 21,   "colour": "green" },
+    { "from": 20,   "to": 43,   "colour": "green" },
+    { "from": 27,   "to": 28,   "colour": "green" },
+    { "from": 36,   "to": 37,   "colour": "green" },
+    { "from": 41,   "to": 57,   "colour": "green" },
+    { "from": 52,   "to": 59,   "colour": "green" },
+    { "from": 59,   "to": 71,   "colour": "green" },
+    { "from": 63,   "to": 82,   "colour": "green"   },
+    { "from": 65,   "to": 104,   "colour": "green"   },
+    { "from": 68,   "to": 71,   "colour": "green"   },
+    { "from": 71,   "to": 88,   "colour": "green"   },
+    { "from": 85,   "to": 106,   "colour": "green"   },
+    { "from": 99,   "to": 101,   "colour": "green"   },
 
-"connections": [
-{
-  "from":   1
-  "to":     2
-  "colour": "yellow"
-},
-{
-  "from":   2
-  "to":     3
-  "colour": "yellow"
-},
-{
-  "from":   3
-  "to":     4
-  "colour": "yellow"
-},
-{
-  "from":   4
-  "to":     5
-  "colour": "yellow"
-},
-{
-  "from":   5
-  "to":     6
-  "colour": "yellow"
-},
-{
-  "from":   6
-  "to":     7
-  "colour": "yellow"
-},
-{
-  "from":   1
-  "to":     7
-  "colour": "yellow"
-},
-{
-  "from":   1
-  "to":     3
-  "colour": "green"
-},
-{
-  "from":   3
-  "to":     6
-  "colour": "green"
-},
-{
-  "from":   1
-  "to":     5
-  "colour": "red"
-}
-],
+    { "from": 1,    "to": 5,    "colour": "red"   },
+    { "from": 1,    "to": 2,    "colour": "red"   },
+    { "from": 2,    "to": 3,    "colour": "red"   },
+    { "from": 2,    "to": 7,    "colour": "red"   },
+    { "from": 3,    "to": 4,    "colour": "red"   },
+    { "from": 4,    "to": 5,    "colour": "red"   },
+    { "from": 4,    "to": 8,    "colour": "red"   },
+    { "from": 5,    "to": 6,    "colour": "red"   },
+    { "from": 5,    "to": 9,    "colour": "red"   },
+    { "from": 6,    "to": 7,    "colour": "red"   },
+    { "from": 6,    "to": 11,   "colour": "red"   },
+    { "from": 7,    "to": 9,    "colour": "red"   },
+    { "from": 8,    "to": 11,   "colour": "red"   },
+    { "from": 9,    "to": 10,   "colour": "red"   },
+    { "from": 10,   "to": 26,   "colour": "red"   },
+    { "from": 10,   "to": 12,   "colour": "red"   },
+    { "from": 10,   "to": 14,   "colour": "red"   },
+    { "from": 11,   "to": 15,   "colour": "red"   },
+    { "from": 12,   "to": 17,   "colour": "red"   },
+    { "from": 12,   "to": 13,   "colour": "red"   },
+    { "from": 13,   "to": 20,   "colour": "red"   },
+    { "from": 14,   "to": 16,   "colour": "red"   },
+    { "from": 14,   "to": 19,   "colour": "red"   },
+    { "from": 15,   "to": 21,   "colour": "red"   },
+    { "from": 15,   "to": 23,   "colour": "red"   },
+    { "from": 16,   "to": 21,   "colour": "red"   },
+    { "from": 17,   "to": 18,   "colour": "red"   },
+    { "from": 18,   "to": 19,   "colour": "red"   },
+    { "from": 18,   "to": 22,   "colour": "red"   },
+    { "from": 19,   "to": 28,   "colour": "red"   },
+    { "from": 19,   "to": 29,   "colour": "red"   },
+    { "from": 20,   "to": 29,   "colour": "red"   },
+    { "from": 21,   "to": 21.5, "colour": "red"   },
+    { "from": 21.5, "to": 24,   "colour": "red"   },
+    { "from": 21.5, "to": 27,   "colour": "red"   },
+    { "from": 22,   "to": 33,   "colour": "red"   },
+    { "from": 23,   "to": 36,   "colour": "red"   },
+    { "from": 23,   "to": 24,   "colour": "red"   },
+    { "from": 23,   "to": 37,   "colour": "red"   },
+    { "from": 24,   "to": 25,   "colour": "red"   },
+    { "from": 24,   "to": 27,   "colour": "red"   },
+    { "from": 24,   "to": 38,   "colour": "red"   },
+    { "from": 25,   "to": 26,   "colour": "red"   },
+    { "from": 26,   "to": 27,   "colour": "red"   },
+    { "from": 27,   "to": 38,   "colour": "red"   },
+    { "from": 28,   "to": 29,   "colour": "red"   },
+    { "from": 29,   "to": 30,   "colour": "red"   },
+    { "from": 30,   "to": 34,   "colour": "red"   },
+    { "from": 30,   "to": 31,   "colour": "red"   },
+    { "from": 31,   "to": 34,   "colour": "red"   },
+    { "from": 31,   "to": 32,   "colour": "red"   },
+    { "from": 31,   "to": 35,   "colour": "red"   },
+    { "from": 32,   "to": 35,   "colour": "red"   },
+    { "from": 33,   "to": 39,   "colour": "red"   },
+    { "from": 34,   "to": 57,   "colour": "red"   },
+    { "from": 34,   "to": 35,   "colour": "red"   },
+    { "from": 34,   "to": 49,   "colour": "red"   },
+    { "from": 35,   "to": 43,   "colour": "red"   },
+    { "from": 36,   "to": 37,   "colour": "red"   },
+    { "from": 36,   "to": 44,   "colour": "red"   },
+    { "from": 37,   "to": 38,   "colour": "red"   },
+    { "from": 38,   "to": 47,   "colour": "red"   },
+    { "from": 38,   "to": 39,   "colour": "red"   },
+    { "from": 39,   "to": 62,   "colour": "red"   },
+    { "from": 39,   "to": 40,   "colour": "red"   },
+    { "from": 40,   "to": 41,   "colour": "red"   },
+    { "from": 41,   "to": 42,   "colour": "red"   },
+    { "from": 42,   "to": 43,   "colour": "red"   },
+    { "from": 43,   "to": 50,   "colour": "red"   },
+    { "from": 44,   "to": 45,   "colour": "red"   },
+    { "from": 44,   "to": 51,   "colour": "red"   },
+    { "from": 45,   "to": 46,   "colour": "red"   },
+    { "from": 45,   "to": 52,   "colour": "red"   },
+    { "from": 45,   "to": 53,   "colour": "red"   },
+    { "from": 46,   "to": 54,   "colour": "red"   },
+    { "from": 46,   "to": 47,   "colour": "red"   },
+    { "from": 47,   "to": 55,   "colour": "red"   },
+    { "from": 48,   "to": 62,   "colour": "red"   },
+    { "from": 48,   "to": 49,   "colour": "red"   },
+    { "from": 49,   "to": 57,   "colour": "red"   },
+    { "from": 50,   "to": 65,   "colour": "red"   },
+    { "from": 51,   "to": 52,   "colour": "red"   },
+    { "from": 52,   "to": 53,   "colour": "red"   },
+    { "from": 53,   "to": 54,   "colour": "red"   },
+    { "from": 54,   "to": 55,   "colour": "red"   },
+    { "from": 55,   "to": 60,   "colour": "red"   },
+    { "from": 56,   "to": 57,   "colour": "red"   },
+    { "from": 57,   "to": 76,   "colour": "red"   },
+    { "from": 58,   "to": 59,   "colour": "red"   },
+    { "from": 58,   "to": 66,   "colour": "red"   },
+    { "from": 59,   "to": 73,   "colour": "red"   },
+    { "from": 59,   "to": 72,   "colour": "red"   },
+    { "from": 60,   "to": 61,   "colour": "red"   },
+    { "from": 60,   "to": 73,   "colour": "red"   },
+    { "from": 61,   "to": 62,   "colour": "red"   },
+    { "from": 62,   "to": 63,   "colour": "red"   },
+    { "from": 63,   "to": 64,   "colour": "red"   },
+    { "from": 64,   "to": 65,   "colour": "red"   },
+    { "from": 65,   "to": 103,   "colour": "red"   },
+    { "from": 66,   "to": 67,   "colour": "red"   },
+    { "from": 66,   "to": 68,   "colour": "red"   },
+    { "from": 67,   "to": 68,   "colour": "red"   },
+    { "from": 68,   "to": 69,   "colour": "red"   },
+    { "from": 68,   "to": 78,   "colour": "red"   },
+    { "from": 69,   "to": 70,   "colour": "red"   },
+    { "from": 70,   "to": 71,   "colour": "red"   },
+    { "from": 71,   "to": 72,   "colour": "red"   },
+    { "from": 71,   "to": 79,   "colour": "red"   },
+    { "from": 71,   "to": 73,   "colour": "red"   },
+    { "from": 71,   "to": 90,   "colour": "red"   },
+    { "from": 72,   "to": 73,   "colour": "red"   },
+    { "from": 73,   "to": 74,   "colour": "red"   },
+    { "from": 73,   "to": 90,   "colour": "red"   },
+    { "from": 73,   "to": 80,   "colour": "red"   },
+    { "from": 74,   "to": 75,   "colour": "red"   },
+    { "from": 74,   "to": 81,   "colour": "red"   },
+    { "from": 75,   "to": 82,   "colour": "red"   },
+    { "from": 76,   "to": 83,   "colour": "red"   },
+    { "from": 77,   "to": 84,   "colour": "red"   },
+    { "from": 78,   "to": 88,   "colour": "red"   },
+    { "from": 79,   "to": 88,   "colour": "red"   },
+    { "from": 80,   "to": 81,   "colour": "red"   },
+    { "from": 80,   "to": 98,   "colour": "red"   },
+    { "from": 81,   "to": 100,   "colour": "red"   },
+    { "from": 82,   "to": 91,   "colour": "red"   },
+    { "from": 83,   "to": 92,   "colour": "red"   },
+    { "from": 84,   "to": 93,   "colour": "red"   },
+    { "from": 85,   "to": 86,   "colour": "red"   },
+    { "from": 85,   "to": 89,   "colour": "red"   },
+    { "from": 85,   "to": 106,   "colour": "red"   },
+    { "from": 86,   "to": 87,   "colour": "red"   },
+    { "from": 86,   "to": 89,   "colour": "red"   },
+    { "from": 87,   "to": 89,   "colour": "red"   },
+    { "from": 87,   "to": 88,   "colour": "red"   },
+    { "from": 90,   "to": 91,   "colour": "red"   },
+    { "from": 91,   "to": 92,   "colour": "red"   },
+    { "from": 91,   "to": 92,   "colour": "red"   },
+    { "from": 92,   "to": 93,   "colour": "red"   },
+    { "from": 92,   "to": 113,   "colour": "red"   },
+    { "from": 93,   "to": 102,   "colour": "red"   },
+    { "from": 94,   "to": 105,   "colour": "red"   },
+    { "from": 94,   "to": 95,   "colour": "red"   },
+    { "from": 95,   "to": 96,   "colour": "red"   },
+    { "from": 96,   "to": 97,   "colour": "red"   },
+    { "from": 97,   "to": 98,   "colour": "red"   },
+    { "from": 98,   "to": 99,   "colour": "red"   },
+    { "from": 99,   "to": 100,   "colour": "red"   },
+    { "from": 100,   "to": 101,   "colour": "red"   },
+    { "from": 101,   "to": 102,   "colour": "red"   },
+    { "from": 102,   "to": 103,   "colour": "red"   },
+    { "from": 103,   "to": 104,   "colour": "red"   },
+    { "from": 104,   "to": 111,   "colour": "red"   },
+    { "from": 105,   "to": 106,   "colour": "red"   },
+    { "from": 106,   "to": 107,   "colour": "red"   },
+    { "from": 107,   "to": 108,   "colour": "red"   },
+    { "from": 108,   "to": 109,   "colour": "red"   },
+    { "from": 108,   "to": 112,   "colour": "red"   },
+    { "from": 109,   "to": 112,   "colour": "red"   },
+    { "from": 109,   "to": 110,   "colour": "red"   },
+    { "from": 110,   "to": 111,   "colour": "red"   },
+     { "from": 113,   "to": 101,   "colour": "red"   }
+    
+   
 
-"locations": [
-{
-  "location": 1,
-  "xPos": 56,
-  "yPos": 82
-},
-{
-  "location": 2,
-  "xPos": 223,
-  "yPos": 55
-},
-{
-  "location": 3,
-  "xPos": 352,
-  "yPos": 80
-},
-{
-  "location": 4,
-  "xPos": 435,
-  "yPos": 206
-},
-{
-  "location": 5,
-  "xPos": 361,
-  "yPos": 309
-},
-{
-  "location": 6,
-  "xPos": 199,
-  "yPos": 307
-},
-{
-  "location": 7,
-  "xPos": 79,
-  "yPos": 219
-}
-]
 
+  ],
+
+  "locations": [
+    { "location": 1,    "xPos": 21.7,  "yPos": 4.4,   "name": "Location 1"   },
+    { "location": 2,    "xPos": 17.55,  "yPos": 11.4,  "name": "Location 2"   },
+    { "location": 3,    "xPos": 20.5,  "yPos": 11.4,  "name": "Location 3"   },
+    { "location": 4,    "xPos": 23.32,  "yPos": 11.4,  "name": "Location 4"   },
+    { "location": 5,    "xPos": 26.4,  "yPos": 9.6,   "name": "Location 5"   },
+    { "location": 6,    "xPos": 29.3,  "yPos": 13.2,  "name": "Location 6"   },
+    { "location": 7,    "xPos": 32.4,  "yPos": 16.5,  "name": "Location 7"   },
+    { "location": 8,    "xPos": 17.5,  "yPos": 20.0,  "name": "Location 8"   },
+    { "location": 9,    "xPos": 35.3,  "yPos": 20.0,  "name": "Location 9"   },
+    { "location": 10,   "xPos": 38.1,  "yPos": 23.5,  "name": "Location 10"  },
+    { "location": 11,   "xPos": 20.3,  "yPos": 25.3,  "name": "Location 11"  },
+    { "location": 12,   "xPos": 40.4,  "yPos": 25.3,  "name": "Location 12"  },
+    { "location": 13,   "xPos": 55.3,  "yPos": 25.7,  "name": "Location 13"  },
+    { "location": 14,   "xPos": 46.2,  "yPos": 27.0,  "name": "Location 14"  },
+    { "location": 15,   "xPos": 20.5,  "yPos": 32.4,  "name": "Location 15"  },
+    { "location": 16,   "xPos": 40.0,  "yPos": 30.5,  "name": "Location 16"  },
+    { "location": 17,   "xPos": 44.5, "yPos": 30.8, "name": "Location 17"  },
+    { "location": 18,   "xPos": 46.3, "yPos": 32.5, "name": "Location 18"  },
+    { "location": 19,   "xPos": 52.2, "yPos": 32.2, "name": "Location 19"  },
+    { "location": 20,   "xPos": 68.9, "yPos": 32.3, "name": "Location 20"  },
+    { "location": 21,   "xPos": 38.5, "yPos": 32.5, "name": "Location 21"  },
+    { "location": 21.5, "xPos": 37, "yPos": 34.3, "name": "Location 21.5"},
+    { "location": 22,   "xPos": 46.3, "yPos": 35.7, "name": "Location 22"  },
+    { "location": 23,   "xPos": 20.4, "yPos": 37.5, "name": "Location 23"  },
+    { "location": 24,   "xPos": 24.9, "yPos": 37.5, "name": "Location 24"  },
+    { "location": 25,   "xPos": 27.8, "yPos": 37.6, "name": "Location 25"  },
+    { "location": 26,   "xPos": 30.9, "yPos": 37.6, "name": "Location 26"  },
+    { "location": 27,   "xPos": 35.3, "yPos": 37.6, "name": "Location 27"  },
+    { "location": 28,   "xPos": 52.2, "yPos": 37.6, "name": "Location 28"  },
+    { "location": 29,   "xPos": 58.3, "yPos": 37.6, "name": "Location 29"  },
+    { "location": 30,   "xPos": 62.4, "yPos": 37.6, "name": "Location 30"  },
+    { "location": 31,   "xPos": 65.7, "yPos": 37.6, "name": "Location 31"  },
+    { "location": 32,   "xPos": 68.8, "yPos": 37.6, "name": "Location 32"  },
+    { "location": 33,   "xPos": 46.2, "yPos": 41.2, "name": "Location 33"  },
+    { "location": 34,   "xPos": 58.3, "yPos": 41.2, "name": "Location 34"  },
+    { "location": 35,   "xPos": 68.85, "yPos": 41.2, "name": "Location 35"  },
+    { "location": 36,   "xPos": 14.4, "yPos": 44.6, "name": "Location 36"  },
+    { "location": 37,   "xPos": 22, "yPos": 44.6, "name": "Location 37"  },
+    { "location": 38,   "xPos": 35.6, "yPos": 44.5, "name": "Location 38"  },
+    { "location": 39,   "xPos": 46.2, "yPos": 44.8, "name": "Location 39"  },
+    { "location": 40,   "xPos": 52.3, "yPos": 44.5, "name": "Location 40"  },
+    { "location": 41,   "xPos": 61.4, "yPos": 44.7, "name": "Location 41"  },
+    { "location": 42,   "xPos": 64.3, "yPos": 44.7, "name": "Location 42"  },
+    { "location": 43,   "xPos": 68.9, "yPos": 44.7, "name": "Location 43"  },
+    { "location": 44,   "xPos": 16, "yPos": 48.4, "name": "Location 44"  },
+    { "location": 45,   "xPos": 22, "yPos": 48.4, "name": "Location 45"  },
+    { "location": 46,   "xPos": 26.7, "yPos": 48.3, "name": "Location 46"  },
+    { "location": 47,   "xPos": 35.6, "yPos": 48.3, "name": "Location 47"  },
+    { "location": 48,   "xPos": 48.8, "yPos": 49.9, "name": "Location 48"  },
+    { "location": 49,   "xPos": 55.3, "yPos": 50.1, "name": "Location 49"  },
+    { "location": 50,   "xPos": 67.3, "yPos": 50, "name": "Location 50"  },
+    { "location": 51,   "xPos": 16, "yPos": 53.59, "name": "Location 51"  },
+    { "location": 52,   "xPos": 20.6, "yPos": 53.6, "name": "Location 52"  },
+    { "location": 53,   "xPos": 26.6, "yPos": 53.6, "name": "Location 53"  },
+    { "location": 54,   "xPos": 32.6, "yPos": 53.6, "name": "Location 54"  },
+    { "location": 55,   "xPos": 35.4, "yPos": 53.6, "name": "Location 55"  },
+    { "location": 56,   "xPos": 53.7, "yPos": 53.5, "name": "Location 56"  },
+    { "location": 57,   "xPos":  58.3, "yPos": 53.6, "name": "Location 57"  },
+    { "location": 58,   "xPos": 8.2, "yPos": 57.3, "name": "Location 58"  },
+    { "location": 59,   "xPos": 16, "yPos": 56.7, "name": "Location 59"  },
+    { "location": 60,   "xPos": 35.4, "yPos": 58.9, "name": "Location 60"  },
+    { "location": 61,   "xPos": 38.5, "yPos": 58.9, "name": "Location 61"  },
+    { "location": 62,   "xPos": 46.2, "yPos": 58.9, "name": "Location 62"  },
+    { "location": 63,   "xPos": 53.5, "yPos": 58.9, "name": "Location 63"  },
+    { "location": 64,   "xPos": 61.5, "yPos": 58.9, "name": "Location 64"  },
+    { "location": 65,   "xPos": 67.3, "yPos": 58.9, "name": "Location 65"  },
+    { "location": 66,   "xPos": 8.2, "yPos": 62.1, "name": "Location 66"  },
+    { "location": 67,   "xPos": 5.4, "yPos": 64.3, "name": "Location 67"  },
+    { "location": 68,   "xPos": 19, "yPos": 63.8, "name": "Location 68"  },
+    { "location": 69,   "xPos": 22, "yPos": 63.8, "name": "Location 69"  },
+    { "location": 70,   "xPos": 24.8, "yPos": 63.8, "name": "Location 70"  },
+    { "location": 71,   "xPos": 27.9, "yPos": 63.8, "name": "Location 71"  },
+    { "location": 72,   "xPos": 31, "yPos": 60.6, "name": "Location 72"  },
+    { "location": 73,   "xPos": 35.6, "yPos": 63.8, "name": "Location 73"  },
+    { "location": 74,   "xPos": 41.54, "yPos": 63.8, "name": "Location 74"  },
+    { "location": 75,   "xPos": 46.2, "yPos": 63.8, "name": "Location 75"  },
+    { "location": 76,   "xPos": 58.4, "yPos": 64.3, "name": "Location 76"  },
+    { "location": 77,   "xPos": 67.3, "yPos": 63.8, "name": "Location 77"  },
+    { "location": 78,   "xPos": 19, "yPos": 67.4, "name": "Location 78"  },
+    { "location": 79,   "xPos": 24.8, "yPos": 67.4, "name": "Location 79"  },
+    { "location": 80,   "xPos": 35.7, "yPos": 69.1, "name": "Location 80"  },
+    { "location": 81,   "xPos": 40.1, "yPos": 69.1, "name": "Location 81"  },
+    { "location": 82,   "xPos": 46.1, "yPos": 71.2, "name": "Location 82"  },
+    { "location": 83,   "xPos": 58.3, "yPos": 71.2, "name": "Location 83"  },
+    { "location": 84,   "xPos": 67.3, "yPos": 71.2, "name": "Location 84"  },
+    { "location": 85,   "xPos": 5.4, "yPos": 72.8, "name": "Location 85"  },
+    { "location": 86,   "xPos": 11.3, "yPos": 72.8, "name": "Location 86"  },
+    { "location": 87,   "xPos": 17.2, "yPos": 72.8, "name": "Location 87"  },
+    { "location": 88,   "xPos": 19, "yPos": 71, "name": "Location 88"  },
+    { "location": 89,   "xPos": 14.4, "yPos": 76.4, "name": "Location 89"  },
+    { "location": 90,   "xPos": 34.1, "yPos": 78.2, "name": "Location 90"  },
+    { "location": 91,   "xPos": 43.1, "yPos": 76, "name": "Location 91"  },
+    { "location": 92,   "xPos": 58.3, "yPos": 76.6, "name": "Location 92"  },
+    { "location": 93,   "xPos": 67.3, "yPos": 76, "name": "Location 93"  },
+    { "location": 94,   "xPos": 21.9, "yPos": 83.4, "name": "Location 94"  },
+    { "location": 95,   "xPos": 25.2, "yPos": 83.4, "name": "Location 95"  },
+    { "location": 96,   "xPos": 27.9, "yPos": 83.4, "name": "Location 96"  },
+    { "location": 97,   "xPos": 32.7, "yPos": 83.4, "name": "Location 97"  },
+    { "location": 98,   "xPos": 35.8, "yPos": 83.4, "name": "Location 98"  },
+    { "location": 99,   "xPos": 41.3, "yPos": 83.4, "name": "Location 99"  },
+    { "location": 100,  "xPos": 47.7, "yPos": 81.6, "name": "Location 100" },
+    { "location": 101,  "xPos": 58.3, "yPos": 83.4, "name": "Location 101" },
+    { "location": 102,  "xPos": 67.3, "yPos": 83.4, "name": "Location 102" },
+    { "location": 103,  "xPos": 73.3, "yPos": 83.4, "name": "Location 103" },
+    { "location": 104,  "xPos": 78, "yPos": 82.1, "name": "Location 104" },
+    { "location": 105,  "xPos": 18.7, "yPos": 86.6, "name": "Location 105" },
+    { "location": 106,  "xPos": 19, "yPos": 90.1, "name": "Location 106" },
+    { "location": 107,  "xPos": 26.3, "yPos": 90.1, "name": "Location 107" },
+    { "location": 108,  "xPos": 35.4, "yPos": 90.5, "name": "Location 108" },
+    { "location": 109,  "xPos": 58.3, "yPos": 88.8, "name": "Location 109" },
+    { "location": 110,  "xPos": 66.2, "yPos": 88.8, "name": "Location 110" },
+    { "location": 111,  "xPos": 78.1, "yPos": 88.8, "name": "Location 111" },
+    { "location": 112,  "xPos": 61.4, "yPos": 93.8, "name": "Location 112" },
+    { "location": 113,  "xPos": 58.4, "yPos": 79.8, "name": "Location 113" }
+  ]
 }

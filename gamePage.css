@@ -1,10 +1,22 @@
 
         /* ========================================
            GAME MAP CONTAINER
-           Parent element for positioning pieces
+           Outer element - aspect-ratio lock is in styles.css
            ======================================== */
-        .game-map {
-            position: relative;
+        /* .game-map override not needed here — handled in styles.css */
+
+        /* Marker containers fill the inner wrapper exactly */
+        #locationMarkers,
+        #capturedMarkers {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* let clicks pass to child markers */
+        }
+        #locationMarkers .location-marker,
+        #capturedMarkers .captured-marker {
+            pointer-events: auto;
         }
         
         /* ========================================
@@ -16,6 +28,7 @@
             position: absolute;
             width: 36px;
             height: 36px;
+            pointer-events: auto; /* re-enable inside pointer-events:none .map-inner */
             font-size: 24px;
             display: flex;
             align-items: center;
@@ -73,6 +86,9 @@
         .location-marker.bus-only {
             background: #e74c3c; /* Red for bus */
         }
+        .location-marker.boat-only {
+            background: #000000; /* Black for boat */
+        }
         
         /* Two color markers - split in half */
         .location-marker.taxi-ebike {
@@ -81,13 +97,36 @@
         .location-marker.taxi-bus {
             background: linear-gradient(135deg, #3498db 50%, #e74c3c 50%);
         }
+        .location-marker.taxi-boat {
+            background: linear-gradient(135deg, #3498db 50%, #000000 50%);
+        }
         .location-marker.ebike-bus {
             background: linear-gradient(135deg, #2ecc71 50%, #e74c3c 50%);
         }
+        .location-marker.ebike-boat {
+            background: linear-gradient(135deg, #2ecc71 50%, #000000 50%);
+        }
+        .location-marker.bus-boat {
+            background: linear-gradient(135deg, #e74c3c 50%, #000000 50%);
+        }
         
-        /* All three colors marker - tri-split */
-        .location-marker.all-transport {
+        /* Three color markers */
+        .location-marker.taxi-ebike-bus {
             background: conic-gradient(#3498db 0deg 120deg, #2ecc71 120deg 240deg, #e74c3c 240deg 360deg);
+        }
+        .location-marker.taxi-ebike-boat {
+            background: conic-gradient(#3498db 0deg 120deg, #2ecc71 120deg 240deg, #000000 240deg 360deg);
+        }
+        .location-marker.taxi-bus-boat {
+            background: conic-gradient(#3498db 0deg 120deg, #e74c3c 120deg 240deg, #000000 240deg 360deg);
+        }
+        .location-marker.ebike-bus-boat {
+            background: conic-gradient(#2ecc71 0deg 120deg, #e74c3c 120deg 240deg, #000000 240deg 360deg);
+        }
+        
+        /* Four color marker - all transports */
+        .location-marker.all-transport {
+            background: conic-gradient(#3498db 0deg 90deg, #2ecc71 90deg 180deg, #e74c3c 180deg 270deg, #000000 270deg 360deg);
         }
         
         /* Hover effect - slight scale up */

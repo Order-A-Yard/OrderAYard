@@ -319,6 +319,160 @@ const ticketTypeMap = {
     green: 'ebike',     // Green routes require e-bike tickets
     red: 'bus'          // Red routes require bus tickets
 };
+         /* ============================================================
+           COORDINATE CAPTURE TOOL
+           Click on the map to capture stop positions.
+           ============================================================ */
+        let capturedLocations = [];
+        let nextLocationId = 1;
+        let captureMode = true; // Set to false when done capturing
+        
+        function initCaptureMode() {
+            const gameMap = document.getElementById('gameMap');
+            const mapInner = gameMap.querySelector('.map-inner');
+
+            // Listen on gameMap (map-inner is pointer-events:none so clicks fall through to here)
+            // Measure against mapInner — identical bounding rect to the image.
+            gameMap.addEventListener('click', function(e) {
+                if (!captureMode) return;
+                // Ignore clicks on interactive children (buttons, markers)
+                if (e.target.closest('button') || e.target.closest('.location-marker') || e.target.closest('.captured-marker')) return;
+
+                const rect = mapInner.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // Clamp to 0-100 in case click lands on a border pixel
+                const xPercent = Math.max(0, Math.min(100, (x / rect.width * 100))).toFixed(2);
+                const yPercent = Math.max(0, Math.min(100, (y / rect.height * 100))).toFixed(2);
+                
+                // Store the location
+                capturedLocations.push({
+                    location: nextLocationId,
+                    xPos: parseFloat(xPercent),
+                    yPos: parseFloat(yPercent),
+                    name: "Location " + nextLocationId
+                });
+                
+                // Add visual marker
+                addCapturedMarker(nextLocationId, xPercent, yPercent);
+                
+                // Update display
+                document.getElementById('coordDisplay').innerHTML = 
+                    `Captured #${nextLocationId}: (${xPercent}%, ${yPercent}%)`;
+                nextLocationId++;
+                document.getElementById('nextLocationId').textContent = nextLocationId;
+                updateCapturedList();
+            });
+        }
+        
+        function addCapturedMarker(id, xPercent, yPercent) {
+            const container = document.getElementById('capturedMarkers');
+            const marker = document.createElement('div');
+            marker.className = 'captured-marker';
+            marker.id = 'marker-' + id;
+            marker.style.cssText = `
+                position: absolute;
+                left: ${xPercent}%;
+                top: ${yPercent}%;
+                width: 24px;
+                height: 24px;
+                background: #4CAF50;
+                border: 2px solid white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                font-weight: bold;
+                color: white;
+                transform: translate(-50%, -50%);
+                z-index: 100;
+                pointer-events: none;
+            `;
+            marker.textContent = id;
+            container.appendChild(marker);
+        }
+        
+        // function undoLastCapture() {
+        //     if (capturedLocations.length === 0) return;
+            
+        //     capturedLocations.pop();
+        //     nextLocationId--;
+            
+        //     const marker = document.getElementById('marker-' + nextLocationId);
+        //     if (marker) marker.remove();
+            
+        //     document.getElementById('nextLocationId').textContent = nextLocationId;
+        //     document.getElementById('coordDisplay').innerHTML = 
+        //         nextLocationId > 1 ? `Undone. Next: #${nextLocationId}` : 'Click on map to capture position';
+        //     updateCapturedList();
+        // }
+        
+        // function updateCapturedList() {
+        //     const list = document.getElementById('capturedList');
+        //     list.innerHTML = capturedLocations.map(loc => 
+        //         `<div>#${loc.location}: (${loc.xPos}%, ${loc.yPos}%)</div>`
+        //     ).join('');
+        // }
+        
+        // function exportCoordinates() {
+        //     const json = JSON.stringify(capturedLocations, null, 2);
+        //     navigator.clipboard.writeText(json).then(() => {
+        //         alert('Coordinates copied to clipboard! Paste them into mapData.locations array.');
+        //     });
+        //     console.log('Captured Locations:', json);
+        // }
+        
+        // Initialize capture mode when page loads
+        // document.addEventListener('DOMContentLoaded', initCaptureMode);
+        
+        /* ============================================================
+           MAP DATA
+           Loaded at runtime from "mini map.json".
+           mapData is null until the fetch resolves; all rendering
+           waits until loadMapData() resolves.
+           ============================================================ */
+        let mapData = null;
+
+        
+        /* ============================================================
+           LOAD MAP DATA FROM JSON
+           Fetches "mini map.json" and assigns it to mapData.
+           Falls back to the commented _mapDataFallback object above
+           if the fetch fails (e.g. file:// protocol with no server).
+           ============================================================ */
+        function loadMapData() {
+            return fetch('mini map.json')
+                .then(res => {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    mapData = data;
+                    console.log('[Map] Loaded from JSON:',
+                        mapData.locations.length, 'locations,',
+                        mapData.connections.length, 'connections');
+                })
+                .catch(err => {
+                    console.warn('[Map] Could not load mini map.json – check you are running via a local server (not file://). Error:', err.message);
+                    // mapData stays null; initializeMapLocations will log a clear error
+                });
+        }
+         /* ============================================================
+           Used to validate if player has the right ticket for a route.
+           
+           Transport types for this map:
+           - Red lines   = Taxi routes
+           - Green lines = E-Bike routes
+           - Blue lines  = Bus routes
+           ============================================================ */
+        const ticketTypeMap = {
+            blue: 'taxi',     // blue routes require taxi tickets
+            green: 'ebike',     // Green routes require e-bike tickets
+            red: 'bus',        // Red routes require bus tickets
+            black: 'boat'      // Black routes require boat tickets
+        };
 
 /* ============================================================
     GAME STATE VARIABLES
@@ -359,6 +513,55 @@ function selectTicket(ticketType) {
         ticketButton.classList.add('selected');
     }
 }
+        /* ============================================================
+           GAME STATE VARIABLES
+           These track the current state of the game:
+           - currentPosition: Which location the player is at
+           - selectedTicketType: Which ticket is currently selected
+           - ticketCounts: How many of each ticket the player has
+           ============================================================ */
+        let currentPosition = 1;        // Will be randomized after mapData loads
+        let selectedTicketType = null;  // No ticket selected initially
+        let ticketCounts = {
+            taxi: 3,     // Taxi for red routes
+            ebike: 5,    // E-bike for green routes
+            bus: 10,      // Bus for blue routes (most common)
+            boat: 6       // Boat for black routes
+        };
+
+        function chooseRandomStartPosition() {
+            if (!mapData || !Array.isArray(mapData.locations) || mapData.locations.length === 0) {
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * mapData.locations.length);
+            currentPosition = mapData.locations[randomIndex].location;
+        }
+
+        /* 
+           TICKET SELECTION FUNCTION
+           Called when player clicks a ticket button.
+           Highlights the selected ticket and stores the selection.
+           Clicking same ticket again deselects it.
+       */
+        function selectTicket(ticketType) {
+            // Remove selection from all tickets first
+            document.querySelectorAll('.ticket-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Get the clicked ticket button
+            const ticketButton = document.getElementById(ticketType + 'Ticket');
+            
+            if (selectedTicketType === ticketType) {
+                // Deselect if clicking the same ticket (toggle off)
+                selectedTicketType = null;
+            } else {
+                // Select new ticket and highlight it
+                selectedTicketType = ticketType;
+                ticketButton.classList.add('selected');
+            }
+        }
 
 /* ============================================================
     GET TRANSPORT TYPES FOR A LOCATION
@@ -403,6 +606,59 @@ function getMarkerColorClass(transports) {
     
     return ''; // No transports (shouldn't happen)
 }
+        /* ============================================================
+           GET TRANSPORT TYPES FOR A LOCATION
+           Returns an object with boolean flags for each transport type
+           that connects to this location.
+           ============================================================ */
+        function getLocationTransports(locationId) {
+            const transports = { taxi: false, ebike: false, bus: false, boat: false };
+            
+            mapData.connections.forEach(conn => {
+                if (conn.from === locationId || conn.to === locationId) {
+                    const ticketType = ticketTypeMap[conn.colour];
+                    if (ticketType) {
+                        transports[ticketType] = true;
+                    }
+                }
+            });
+            
+            return transports;
+        }
+        
+        /* ============================================================
+           GET MARKER COLOR CLASS
+           Returns the CSS class for a location based on available
+           transport types (red=taxi, green=ebike, blue=bus).
+           ============================================================ */
+        function getMarkerColorClass(transports) {
+            const { taxi, ebike, bus, boat } = transports;
+            
+            // Four transports
+            if (taxi && ebike && bus && boat) return 'all-transport';
+            
+            // Three transports
+            if (taxi && ebike && bus) return 'taxi-ebike-bus';
+            if (taxi && ebike && boat) return 'taxi-ebike-boat';
+            if (taxi && bus && boat) return 'taxi-bus-boat';
+            if (ebike && bus && boat) return 'ebike-bus-boat';
+            
+            // Two transports
+            if (taxi && ebike) return 'taxi-ebike';
+            if (taxi && bus) return 'taxi-bus';
+            if (taxi && boat) return 'taxi-boat';
+            if (ebike && bus) return 'ebike-bus';
+            if (ebike && boat) return 'ebike-boat';
+            if (bus && boat) return 'bus-boat';
+            
+            // Single transport
+            if (taxi) return 'taxi-only';
+            if (ebike) return 'ebike-only';
+            if (bus) return 'bus-only';
+            if (boat) return 'boat-only';
+            
+            return ''; // No transports (shouldn't happen)
+        }
 
 /* ============================================================
     MAP INITIALIZATION FUNCTION
@@ -697,6 +953,7 @@ function updateTicketDisplay() {
     document.querySelector('#taxiTicket .ticket-count').textContent = ticketCounts.taxi;
     document.querySelector('#ebikeTicket .ticket-count').textContent = ticketCounts.ebike;
     document.querySelector('#busTicket .ticket-count').textContent = ticketCounts.bus;
+            document.querySelector('#boatTicket .ticket-count').textContent = ticketCounts.boat;
 }
 
 /* ============================================================
@@ -721,6 +978,58 @@ window.onclick = function(event) {
     }
 }
 
+        /* ============================================================
+           PAGE INITIALIZATION
+           Runs when the DOM is fully loaded:
+           - Fetches map data from mini map.json
+           - Sets up all location markers on the map
+           - Adds drag event listeners to player piece
+           - Displays starting position
+           ============================================================ */
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load map data from JSON, then initialise everything that depends on it
+            loadMapData().then(() => {
+                if (!mapData) {
+                    console.error('[Map] mapData is null after load – markers will not render.');
+                    return;
+                }
+
+                chooseRandomStartPosition();
+
+                // Create all location markers and set up the map
+                initializeMapLocations();
+
+                // Set up drag events for the player piece
+                const playerPiece = document.getElementById('playerPiece');
+                playerPiece.addEventListener('dragstart', handleDragStart);
+                playerPiece.addEventListener('dragend', handleDragEnd);
+
+                // Show starting position in the UI
+                document.getElementById('currentPosition').textContent = currentPosition;
+            });
+
+            // === COORDINATE HELPER ===
+            // Click on the map to see and log percentage coordinates
+            // Use these values to position your markers correctly
+            const gameMap = document.getElementById('gameMap');
+            const coordDisplay = document.getElementById('coordDisplay');
+
+            gameMap.addEventListener('click', (e) => {
+                const rect = gameMap.getBoundingClientRect();
+                const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+                const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+
+                coordDisplay.innerHTML = `xPos: ${xPercent}, yPos: ${yPercent}<br><small>Ctrl+Shift+I to see console log</small>`;
+                console.log(`{ location: X, xPos: ${xPercent}, yPos: ${yPercent}, name: "NAME" },`);
+            });
+
+            gameMap.addEventListener('mousemove', (e) => {
+                const rect = gameMap.getBoundingClientRect();
+                const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+                const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+                coordDisplay.textContent = `Hover: ${xPercent}%, ${yPercent}%`;
+            });
+        });
 /* ============================================================
     PAGE INITIALIZATION
     Runs when the DOM is fully loaded:
@@ -763,6 +1072,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+        
 
 function loadPlayersFromServer(){
     //this part needs to get list of all players and save their IDs as local variables
