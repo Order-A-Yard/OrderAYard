@@ -210,3 +210,25 @@ document.getElementById('startButton').addEventListener("click", function(){
         window.location.href = '/gamePage.html';
     })
 })
+
+function checkGameState() {
+    fetch(`http://trinity-developments.co.uk/games/${gameId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Game state:', data.state);
+        
+        // When server says game has started, redirect everyone
+        if (data.state === 'Fugitive') {
+            localStorage.setItem('gameId', gameId);
+            localStorage.setItem('playerId', playerId);
+            window.location.href = '/gamePage.html';
+        }
+    })
+    .catch(error => console.error('Failed to check game state:', error));
+}
+
+// Poll every 3 seconds for all players
+setInterval(checkGameState, 3000);
