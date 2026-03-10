@@ -1,5 +1,5 @@
 const gameId = localStorage.getItem('gameId');
-const playerID = localStorage.getItem('playerID');
+const playerId = localStorage.getItem('playerId') || localStorage.getItem('playerID');
         /* ============================================================
            MAP DATA
            Loaded at runtime from "mini map.json".
@@ -10,6 +10,59 @@ const playerID = localStorage.getItem('playerID');
 
         
         /* ============================================================
+           LOAD MAP DATA FROM JSON
+           Fetches "mini map.json" and assigns it to mapData.
+           Falls back to the commented _mapDataFallback object above
+           if the fetch fails (e.g. file:// protocol with no server).
+           ============================================================ */
+        // function loadMapData() {
+        //     return fetch('mini map.json')
+        //         .then(res => {
+        //             if (!res.ok) throw new Error('HTTP ' + res.status);
+        //             return res.json();
+        //         })
+        //         .then(data => {
+        //             mapData = data;
+        //             console.log('[Map] Loaded from JSON:',
+        //                 mapData.locations.length, 'locations,',
+        //                 mapData.connections.length, 'connections');
+        //         })
+        //         .catch(err => {
+        //             console.warn('[Map] Could not load mini map.json – check you are running via a local server (not file://). Error:', err.message);
+        //             // mapData stays null; initializeMapLocations will log a clear error
+        //         });
+        // }
+         /* ============================================================
+           Used to validate if player has the right ticket for a route.
+           
+           Transport types for this map:
+           - Red lines   = Taxi routes
+           - Green lines = E-Bike routes
+           - Blue lines  = Bus routes
+           ============================================================ */
+        const ticketTypeMap = {
+            blue: 'taxi',     // blue routes require taxi tickets
+            green: 'ebike',     // Green routes require e-bike tickets
+            red: 'bus',        // Red routes require bus tickets
+            black: 'boat'      // Black routes require boat tickets
+        };
+
+        // Maps frontend ticket names → server ticket names
+        const ticketToServer = {
+            taxi: 'yellow',
+            ebike: 'green',
+            bus: 'red',
+            boat: 'black'
+        };
+
+/* ============================================================
+    GAME STATE VARIABLES
+    These track the current state of the game:
+    - currentPosition: Which location the player is at
+    - selectedTicketType: Which ticket is currently selected
+    - ticketCounts: How many of each ticket the player has
+    ============================================================ */
+  /* ============================================================
            LOAD MAP DATA FROM JSON
            Fetches "mini map.json" and assigns it to mapData.
            Falls back to the commented _mapDataFallback object above
@@ -34,27 +87,6 @@ const playerID = localStorage.getItem('playerID');
         }
          /* ============================================================
            Used to validate if player has the right ticket for a route.
-           
-           Transport types for this map:
-           - Red lines   = Taxi routes
-           - Green lines = E-Bike routes
-           - Blue lines  = Bus routes
-           ============================================================ */
-        const ticketTypeMap = {
-            blue: 'taxi',     // blue routes require taxi tickets
-            green: 'ebike',     // Green routes require e-bike tickets
-            red: 'bus',        // Red routes require bus tickets
-            black: 'boat'      // Black routes require boat tickets
-        };
-
-/* ============================================================
-    GAME STATE VARIABLES
-    These track the current state of the game:
-    - currentPosition: Which location the player is at
-    - selectedTicketType: Which ticket is currently selected
-    - ticketCounts: How many of each ticket the player has
-    ============================================================ */
-
 /* ============================================================
     TICKET SELECTION FUNCTION
     Called when player clicks a ticket button.
@@ -294,7 +326,7 @@ function updatePlayerPiecePosition() {
 function highlightCurrentLocation() {
     document.querySelectorAll('.location-marker').forEach(marker => {
         marker.classList.remove('current');
-        if (parseInt(marker.dataset.location) === currentPosition) {
+        if (Number(marker.dataset.location) === currentPosition) {
             marker.classList.add('current');
         }
     });
@@ -386,7 +418,7 @@ function handleDragOver(e) {
 
 // When piece enters a location marker, show valid/invalid state
 function handleDragEnter(e) {
-    const targetLocation = parseInt(e.target.dataset.location);
+    const targetLocation = Number(e.target.dataset.location);
     if (targetLocation === currentPosition) return;  // Can't drop on current location
     
     const connection = getValidConnection(currentPosition, targetLocation);
@@ -409,7 +441,7 @@ function handleDrop(e) {
     e.preventDefault();
     e.target.classList.remove('valid-drop', 'invalid-drop');
     
-    const targetLocation = parseInt(e.target.dataset.location);
+    const targetLocation = Number(e.target.dataset.location);
     attemptMove(targetLocation);
 }
 
@@ -467,7 +499,8 @@ function attemptMove(targetLocation) {
     - Moves the visual piece
     - Resets ticket selection
     ============================================================ */
-function executeMove(newPosition) {
+async function executeMove(newPosition) {
+    const previousPosition = currentPosition;
     const usedTicket = selectedTicketType;
     
     // Deduct one ticket of the used type
@@ -486,19 +519,46 @@ function executeMove(newPosition) {
     selectedTicketType = null;
     document.querySelectorAll('.ticket-button').forEach(btn => btn.classList.remove('selected'));
 
-    //sends move data to server through post request
-    fetch(`http://trinity-developments.co.uk/players/${playerID}/moves`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            "GameID": gameId,
-            "ticket": usedTicket,       // saved before reset
-            "destination": newPosition  // passed into function
-        })
-    })
-    loadPlayersFromServer();
-    
-    console.log(`Moved to ${newPosition} using ${usedTicket}`);
+    if (!playerId || !gameId) {
+        showError('Missing player or game id. Rejoin the lobby and try again.');
+        return;
+    }
+
+    try {
+        // Send the move and wait for server confirmation before refreshing all players.
+        const serverTicket = ticketToServer[usedTicket] || usedTicket;
+        const response = await fetch(`http://trinity-developments.co.uk/players/${playerId}/moves`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                gameID: Number(gameId),
+                ticket: serverTicket,
+                destination: Number(newPosition)
+            })
+        });
+
+        if (!response.ok) {
+            let message = `Move failed (${response.status})`;
+            try {
+                const err = await response.json();
+                if (err && err.message) message = err.message;
+            } catch (_) {
+                // Ignore JSON parse errors and keep fallback message.
+            }
+            throw new Error(message);
+        }
+
+        await loadPlayersFromServer();
+        console.log(`Moved to ${newPosition} using ${usedTicket}`);
+    } catch (error) {
+        // Roll back local optimistic move if server rejects it.
+        currentPosition = previousPosition;
+        ticketCounts[usedTicket]++;
+        updateTicketDisplay();
+        updatePlayerPiecePosition();
+        highlightCurrentLocation();
+        showError(error.message || 'Move failed on server.');
+    }
 }
 
 /* ============================================================
@@ -552,18 +612,19 @@ window.onclick = function(event) {
     ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
     loadMapData().then(() => {
+    chooseRandomStartPosition();
         initializeMapLocations();
         loadPlayersFromServer();
-        setInterval(loadPlayersFromServer, 3000);
-    });
-    
+    setInterval(loadPlayersFromServer, 1000);
+
     // Set up drag events for the player piece
     const playerPiece = document.getElementById('playerPiece');
     playerPiece.addEventListener('dragstart', handleDragStart);
     playerPiece.addEventListener('dragend', handleDragEnd);
-    
+
     // Show starting position in the UI
     document.getElementById('currentPosition').textContent = currentPosition;
+    });
     
     // === COORDINATE HELPER ===
     // Click on the map to see and log percentage coordinates
@@ -589,18 +650,29 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadPlayersFromServer(){
+    if (!mapData) {
+        return Promise.resolve();
+    }
+
     //this part needs to get list of all players and save their IDs as local variables
-    fetch(`http://trinity-developments.co.uk/games/${gameId}`, {
+    return fetch(`http://trinity-developments.co.uk/games/${gameId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json'},
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        return response.json();
+    })
     .then(data => {
+        if (!data.players || !Array.isArray(data.players)) {
+            console.warn('[loadPlayers] No players array in response:', data);
+            return;
+        }
         // save all players from the response
         const players = data.players.map(player => ({
             id: player.playerId,
             name: player.playerName,
-            colour: player.colour,
+            colour: player.colour || player.color,
             location: player.location
         }));
 
@@ -609,30 +681,53 @@ function loadPlayersFromServer(){
             console.log(`Player ${player.name} is at ${player.location}`);
         });
     })
+    .catch(err => console.error('[loadPlayers] Error:', err));
 }
 
 function updateOtherPlayersOnMap(players) {
-    // Remove all existing other-player pieces first
-    document.querySelectorAll('.other-player-piece').forEach(piece => piece.remove());
+    const container = document.getElementById('locationMarkers');
+    const seenIds = new Set();
 
     players.forEach(player => {
-        // Skip the current player (they have their own piece)
-        if (player.id === parseInt(playerID)) return;
+        // Update the current player's local position from the server
+        if (String(player.id) === String(playerId)) {
+            const serverLoc = Number(player.location);
+            if (serverLoc && serverLoc !== currentPosition) {
+                currentPosition = serverLoc;
+                document.getElementById('currentPosition').textContent = serverLoc;
+                updatePlayerPiecePosition();
+                highlightCurrentLocation();
+            }
+            return;
+        }
+
+        seenIds.add(player.id);
 
         // Find location data for this player's position
-        const loc = mapData.locations.find(l => l.location === parseInt(player.location));
+        const loc = mapData.locations.find(l => l.location === Number(player.location));
         if (!loc) return; // skip if location is "Hidden" or invalid
 
-        // Create a piece for this player
-        const piece = document.createElement('div');
-        piece.className = 'other-player-piece';
+        // Reuse existing piece so CSS transitions animate the move
+        let piece = container.querySelector(`.other-player-piece[data-player-id="${player.id}"]`);
+        if (!piece) {
+            piece = document.createElement('div');
+            piece.className = 'other-player-piece';
+            piece.dataset.playerId = player.id;
+            container.appendChild(piece);
+        }
+
+        // Update position (transition in CSS will animate this)
         piece.style.left = `${loc.xPos}%`;
         piece.style.top = `${loc.yPos}%`;
-        piece.style.backgroundColor = player.colour;
-        piece.title = player.name; // tooltip on hover
-        piece.textContent = player.name.charAt(0); // first letter of name
+        piece.style.backgroundColor = player.colour || '#808080';
+        piece.title = player.name;
+        piece.textContent = player.name.charAt(0);
+    });
 
-        document.getElementById('locationMarkers').appendChild(piece);
+    // Remove pieces for players who are no longer in the game
+    container.querySelectorAll('.other-player-piece').forEach(piece => {
+        const pid = Number(piece.dataset.playerId);
+        if (!seenIds.has(pid)) piece.remove();
     });
 }
 
