@@ -491,9 +491,9 @@ function executeMove(newPosition) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            "GameID":`${gameId}`,
-            "ticket": `${selectedTicketType}`,
-            "destination": `${destination}`,
+            "GameID": gameId,
+            "ticket": usedTicket,       // saved before reset
+            "destination": newPosition  // passed into function
         })
     })
     loadPlayersFromServer();
@@ -590,7 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadPlayersFromServer(){
     //this part needs to get list of all players and save their IDs as local variables
-    fetch(`http://trinity-developments.co.uk/games/${gameId}/players`, {
+    fetch(`http://trinity-developments.co.uk/games/${gameId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json'},
     })
