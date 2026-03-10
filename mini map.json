@@ -83,6 +83,7 @@
     { "from": 19,   "to": 28,   "colour": "red"   },
     { "from": 19,   "to": 29,   "colour": "red"   },
     { "from": 20,   "to": 29,   "colour": "red"   },
+    { "from": 20,   "to": 32,   "colour": "red"   },
     { "from": 21,   "to": 21.5, "colour": "red"   },
     { "from": 21.5, "to": 24,   "colour": "red"   },
     { "from": 21.5, "to": 27,   "colour": "red"   },
