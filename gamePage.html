@@ -10,24 +10,11 @@
 </head>
 <body>
     <div class="game-container">
-        <!-- Left Side - Map -->
+        <!-- Map display and information -->
         <div class="game-map-section">
             <div class="game-map" id="gameMap">
-                <!-- .map-inner is the same size as the image —
-                     ALL markers are children of this so % coords line up exactly -->
                 <img src="OrderAYardFinalMap.png" alt="Game Map" class="map-image">
                 <div class="map-inner">
-                    <!-- COORDINATE CAPTURE PANEL -->
-                    <!-- <div id="capturePanel" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.9); color:white; padding:15px; border-radius:8px; font-family:monospace; font-size:12px; z-index:200; max-width:280px;">
-                        <div style="font-weight:bold; margin-bottom:10px;">📍 Coordinate Capture Tool</div>
-                        <div>Next Location: <span id="nextLocationId" style="color:#4CAF50; font-weight:bold;">1</span></div>
-                        <div id="coordDisplay" style="margin:8px 0;">Click on map to capture position</div>
-                        <div style="margin-top:10px;">
-                            <button onclick="undoLastCapture()" style="padding:5px 10px; margin-right:5px; cursor:pointer;">↩ Undo</button>
-                            <button onclick="exportCoordinates()" style="padding:5px 10px; cursor:pointer;">📋 Copy JSON</button>
-                        </div>
-                        <div id="capturedList" style="margin-top:10px; max-height:150px; overflow-y:auto; font-size:10px;"></div>
-                    </div> -->
                     <img id="captureToggle" src="OrderAYardLogo20262.png" style="position:absolute; top:-10px; right:-50px; width:300px; height:300px; cursor:pointer; z-index:200;" title="Toggle Coordinate Capture Tool">
                     <div id="capturedMarkers"></div>
                     <div id="playerPiece1" class="other-player-piece" draggable="true">
@@ -42,21 +29,21 @@
         </div>
     
         
-        <!-- Right Side - Controls -->
+        <!-- Player/map controls -->
         <div class="game-controls-section">
-            <!-- Player Name -->
+            <!-- Player name -->
             <div class="player-info">
                 <h2 id="playerName">Player 1</h2>
             </div>
             
-            <!-- View Map Button -->
+            <!-- View map button -->
             <button class="view-map-button" onclick="viewLargerMap()">
                 🔍 View Larger Map
             </button>
             
         
             
-            <!-- Tickets Section -->
+            <!-- Tickets section -->
             <div class="tickets-section">
                 <h3>Tickets</h3>
                 <div class="tickets-buttons">
@@ -79,7 +66,7 @@
                 </div>
             </div>
             
-            <!-- Position and Move Section -->
+            <!-- Position and move section -->
                  <div class="movement-log-section">
             <h3>Movement Log</h3>
             <div id="movementLog" class="movement-log"></div>
@@ -97,7 +84,7 @@
         </div>
     </div>
     
-    <!-- Modal for Larger Map View -->
+    <!-- Modal for larger map view -->
     <div id="mapModal" class="map-modal">
         <div class="map-modal-content">
             <span class="map-modal-close" onclick="closeMapModal()">&times;</span>

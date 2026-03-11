@@ -1,20 +1,20 @@
 const API_BASE = 'http://trinity-developments.co.uk';
 
-let selectedColor = null;
+let selectedColour = null;
 
-function toggleColorWheel() {
-    const colorWheel = document.getElementById('colorWheel');
-    colorWheel.classList.toggle('active');
+function toggleColourWheel() {
+    const colourWheel = document.getElementById('colourWheel');
+    colourWheel.classList.toggle('active');
 }
 
-function selectColor(colorCode, colorName, element) {
-    selectedColor = colorCode;
+function selectColour(colourCode, colourName, element) {
+    selectedColour = colourCode;
     
     // Update display
-    const display = document.getElementById('selectedColorDisplay');
-    display.textContent = `Selected: ${colorName}`;
-    display.style.backgroundColor = colorCode;
-    display.style.color = getContrastColor(colorCode);
+    const display = document.getElementById('selectedColourDisplay');
+    display.textContent = `Selected: ${colourName}`;
+    display.style.backgroundColor = colourCode;
+    display.style.color = getContrastColour(colourCode);
     
     // Update selected state
     document.querySelectorAll('.color-option').forEach(option => {
@@ -22,17 +22,17 @@ function selectColor(colorCode, colorName, element) {
     });
     element.classList.add('selected');
     
-    // Close color wheel
+    // Close colour wheel
     setTimeout(() => {
-        document.getElementById('colorWheel').classList.remove('active');
+        document.getElementById('colourWheel').classList.remove('active');
     }, 300); 
 }
 
-function getContrastColor(hexColor) {
+function getContrastColour(hexColour) {
     // Convert hex to RGB
-    const r = parseInt(hexColor.substr(1, 2), 16);
-    const g = parseInt(hexColor.substr(3, 2), 16);
-    const b = parseInt(hexColor.substr(5, 2), 16);
+    const r = parseInt(hexColour.substr(1, 2), 16);
+    const g = parseInt(hexColour.substr(3, 2), 16);
+    const b = parseInt(hexColour.substr(5, 2), 16);
     
     // Calculate luminance
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
@@ -48,8 +48,8 @@ async function startGame() {
         return;
     }
     
-    if (!selectedColor) {
-        alert('Please select a color!');
+    if (!selectedColour) {
+        alert('Please select a colour!');
         return;
     }
 
@@ -90,7 +90,7 @@ async function startGame() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 playerName: playerName,
-                color: selectedColor
+                colour: selectedColour
             })
         });
 
@@ -105,7 +105,7 @@ async function startGame() {
         // Store player info in localStorage
         localStorage.setItem('playerId', playerData.playerId);
         localStorage.setItem('playerName', playerName);
-        localStorage.setItem('playerColor', selectedColor);
+        localStorage.setItem('playerColour', selectedColour);
         localStorage.setItem('isHost', 'true');
 
         // Redirect to lobby
