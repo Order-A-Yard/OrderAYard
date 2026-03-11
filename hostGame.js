@@ -1,9 +1,17 @@
-// Smart API base - uses proxy only on HTTPS (GitHub Pages), direct on localhost
+// API Configuration
+// For localhost: direct connection
+// For GitHub Pages (HTTPS): you may need a proxy or the server needs HTTPS
 const API_SERVER = 'http://trinity-developments.co.uk';
 const isSecure = window.location.protocol === 'https:';
-const API_BASE = isSecure ? `https://corsproxy.io/?${API_SERVER}` : API_SERVER;
 
-console.log('Using API:', API_BASE); // Debug log
+// On HTTPS (GitHub Pages), try corsproxy. If it fails, the server needs SSL.
+const API_BASE = isSecure 
+    ? `https://corsproxy.io/?${encodeURIComponent(API_SERVER)}`
+    : API_SERVER;
+
+console.log('Protocol:', window.location.protocol);
+console.log('Is Secure:', isSecure);
+console.log('Using API:', API_BASE);
 
 let selectedColor = null;
 
@@ -63,8 +71,11 @@ async function startGame() {
     startButton.disabled = true;
     startButton.textContent = 'Creating game...';
 
+    console.log('Starting game with API:', API_BASE);
+
     try {
         // Step 1: Create the game
+        console.log('Step 1: Creating game...');
         const gameResponse = await fetch(`${API_BASE}/games`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -75,8 +86,12 @@ async function startGame() {
             })
         });
 
+        console.log('Game response status:', gameResponse.status);
+
         if (!gameResponse.ok) {
-            throw new Error(`Failed to create game: ${gameResponse.status}`);
+            const errorText = await gameResponse.text();
+            console.error('Game creation error:', errorText);
+            throw new Error(`Failed to create game: ${gameResponse.status} - ${errorText}`);
         }
 
         const gameData = await gameResponse.json();
@@ -89,6 +104,7 @@ async function startGame() {
 
         // Step 2: Join the game as the host player
         startButton.textContent = 'Joining game...';
+        console.log('Step 2: Joining game as player...');
 
         const playerResponse = await fetch(`${API_BASE}/games/${gameId}/players`, {
             method: 'POST',
