@@ -11,9 +11,10 @@ function generateQRCode() {
     const qrImage = document.getElementById('qrCodeImage');
     if (!qrImage) return;
     
-    // Build the join URL - uses current host so it works on local network
+    // Build the join URL - works for both local dev and GitHub Pages
     const baseUrl = window.location.origin;
-    const joinUrl = `${baseUrl}/joinGame.html?code=${gameId}`;
+    const pathPrefix = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+    const joinUrl = `${baseUrl}${pathPrefix}/joinGame.html?code=${gameId}`;
     
     // Use QR Server API (free, no signup required)
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`;
