@@ -1,5 +1,11 @@
 const gameId = localStorage.getItem('gameId');
 const playerID = localStorage.getItem('playerID');
+
+// Smart API base - uses proxy only on HTTPS (GitHub Pages), direct on localhost
+const API_SERVER = 'http://trinity-developments.co.uk';
+const isSecure = window.location.protocol === 'https:';
+const API_BASE = isSecure ? `https://corsproxy.io/?${API_SERVER}` : API_SERVER;
+
         /* ============================================================
            MAP DATA
            Loaded at runtime from "mini map.json".
@@ -487,7 +493,7 @@ function executeMove(newPosition) {
     document.querySelectorAll('.ticket-button').forEach(btn => btn.classList.remove('selected'));
 
     //sends move data to server through post request
-    fetch(`http://trinity-developments.co.uk/players/${playerID}/moves`, {
+    fetch(`${API_BASE}/players/${playerID}/moves`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -590,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadPlayersFromServer(){
     //this part needs to get list of all players and save their IDs as local variables
-    fetch(`http://trinity-developments.co.uk/games/${gameId}`, {
+    fetch(`${API_BASE}/games/${gameId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json'},
     })

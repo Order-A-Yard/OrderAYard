@@ -1,4 +1,9 @@
-const API_BASE = 'http://trinity-developments.co.uk';
+// Smart API base - uses proxy only on HTTPS (GitHub Pages), direct on localhost
+const API_SERVER = 'http://trinity-developments.co.uk';
+const isSecure = window.location.protocol === 'https:';
+const API_BASE = isSecure ? `https://corsproxy.io/?${API_SERVER}` : API_SERVER;
+
+console.log('Using API:', API_BASE); // Debug log
 
 let selectedColor = null;
 

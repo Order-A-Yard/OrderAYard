@@ -4,6 +4,11 @@ const playerName = localStorage.getItem('playerName');
 const playerColor = localStorage.getItem('playerColor');
 const isHost = localStorage.getItem('isHost') === 'true';
 
+// Smart API base - uses proxy only on HTTPS (GitHub Pages), direct on localhost
+const API_SERVER = 'http://trinity-developments.co.uk';
+const isSecure = window.location.protocol === 'https:';
+const API_BASE = isSecure ? `https://corsproxy.io/?${API_SERVER}` : API_SERVER;
+
 document.getElementById('gameCodeDisplay').textContent = gameId || 'No Game ID';
 
 // Generate QR Code for joining the game
@@ -161,7 +166,7 @@ generateQRCode();
                 return;
             }
             
-            fetch(`http://trinity-developments.co.uk/games/${gameId}/players`) 
+            fetch(`${API_BASE}/games/${gameId}/players`) 
             .then(res => {
                 if (!res.ok) throw new Error(`Server error: ${res.status}`);
                 return res.json();
@@ -216,7 +221,7 @@ generateQRCode();
     
 
 document.getElementById('startButton').addEventListener("click", function(){
-    fetch(`http://trinity-developments.co.uk/games/${gameId}/start/${playerId}`, {
+    fetch(`${API_BASE}/games/${gameId}/start/${playerId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
     })
@@ -234,7 +239,7 @@ document.getElementById('startButton').addEventListener("click", function(){
 })
 
 function checkGameState() {
-    fetch(`http://trinity-developments.co.uk/games/${gameId}`, {
+    fetch(`${API_BASE}/games/${gameId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
     })

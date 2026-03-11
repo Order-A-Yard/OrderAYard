@@ -2,6 +2,11 @@
 let playerName
 let gameCode
 
+// Smart API base - uses proxy only on HTTPS (GitHub Pages), direct on localhost
+const API_SERVER = 'http://trinity-developments.co.uk';
+const isSecure = window.location.protocol === 'https:';
+const API_BASE = isSecure ? `https://corsproxy.io/?${API_SERVER}` : API_SERVER;
+
 // Auto-fill game code from URL if present (for QR code scanning)
 function autoFillGameCode() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -41,7 +46,7 @@ document.getElementById("bottom-button").addEventListener("click", function(){
     joinButton.disabled = true;
     joinButton.textContent = 'Joining game...';
 
-    fetch(`http://trinity-developments.co.uk/games/${gameCode}/players`, {
+    fetch(`${API_BASE}/games/${gameCode}/players`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
