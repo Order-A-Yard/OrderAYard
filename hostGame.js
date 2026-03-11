@@ -1,6 +1,6 @@
 // API Configuration
-// Using CORS proxy to handle HTTP API from HTTPS pages
-const API_BASE = 'https://corsproxy.io/?http://trinity-developments.co.uk';
+// Direct API works for localhost and ngrok (ngrok tunnels to localhost)
+const API_BASE = 'http://trinity-developments.co.uk';
 
 console.log('Using API:', API_BASE);
 

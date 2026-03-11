@@ -5,7 +5,7 @@ const playerColor = localStorage.getItem('playerColor');
 const isHost = localStorage.getItem('isHost') === 'true';
 
 // API Configuration
-const API_BASE = 'https://corsproxy.io/?http://trinity-developments.co.uk';
+const API_BASE = 'http://trinity-developments.co.uk';
 
 document.getElementById('gameCodeDisplay').textContent = gameId || 'No Game ID';
 

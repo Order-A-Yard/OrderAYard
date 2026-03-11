@@ -2,7 +2,7 @@ const gameId = localStorage.getItem('gameId');
 const playerID = localStorage.getItem('playerID');
 
 // API Configuration
-const API_BASE = 'https://corsproxy.io/?http://trinity-developments.co.uk';
+const API_BASE = 'http://trinity-developments.co.uk';
 
         /* ============================================================
            MAP DATA

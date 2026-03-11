@@ -3,7 +3,7 @@ let playerName
 let gameCode
 
 // API Configuration
-const API_BASE = 'https://corsproxy.io/?http://trinity-developments.co.uk';
+const API_BASE = 'http://trinity-developments.co.uk';
 
 // Auto-fill game code from URL if present (for QR code scanning)
 function autoFillGameCode() {
