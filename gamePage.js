@@ -40,11 +40,13 @@ const playerId = localStorage.getItem('playerId');
            - Green lines = E-Bike routes
            - Blue lines  = Bus routes
            ============================================================ */
+
+        //server expects these ticket types exactly 
         const ticketTypeMap = {
-            blue: 'taxi',     // blue routes require taxi tickets
-            green: 'ebike',     // Green routes require e-bike tickets
-            red: 'bus',        // Red routes require bus tickets
-            black: 'boat'      // Black routes require boat tickets
+            red: 'red',       // red routes = red tickets
+            green: 'green',   // green routes = green tickets  
+            blue: 'yellow',   // blue routes = yellow tickets
+            black: 'black'    // black routes = black tickets
         };
 
 /* ============================================================
@@ -62,72 +64,60 @@ const playerId = localStorage.getItem('playerId');
     Clicking same ticket again deselects it.
     ============================================================ */
 function selectTicket(ticketType) {
-    // Remove selection from all tickets first
     document.querySelectorAll('.ticket-button').forEach(btn => {
         btn.classList.remove('selected');
     });
-    
-    // Get the clicked ticket button
-    const ticketButton = document.getElementById(ticketType + 'Ticket');
-    
+
+    // Map server ticket names back to button IDs
+    const ticketButtonIds = {
+        red: 'redTicket',
+        green: 'greenTicket', 
+        yellow: 'yellowTicket',
+        black: 'blackTicket'
+    };
+
+    const buttonId = ticketButtonIds[ticketType];
+    const ticketButton = document.getElementById(buttonId);
+
     if (selectedTicketType === ticketType) {
-        // Deselect if clicking the same ticket (toggle off)
         selectedTicketType = null;
     } else {
-        // Select new ticket and highlight it
         selectedTicketType = ticketType;
-        ticketButton.classList.add('selected');
+        if (ticketButton) ticketButton.classList.add('selected');
     }
 }
-        /* ============================================================
-           GAME STATE VARIABLES
-           These track the current state of the game:
-           - currentPosition: Which location the player is at
-           - selectedTicketType: Which ticket is currently selected
-           - ticketCounts: How many of each ticket the player has
-           ============================================================ */
-        let currentPosition = 1;        // Will be randomized after mapData loads
-        let selectedTicketType = null;  // No ticket selected initially
-        let ticketCounts = {
-            taxi: 3,     // Taxi for red routes
-            ebike: 5,    // E-bike for green routes
-            bus: 10,      // Bus for blue routes (most common)
-            boat: 6       // Boat for black routes
-        };
+/* ============================================================
+    GAME STATE VARIABLES
+    These track the current state of the game:
+    - currentPosition: Which location the player is at
+    - selectedTicketType: Which ticket is currently selected
+    - ticketCounts: How many of each ticket the player has
+    ============================================================ */
+let currentPosition = 1;        // Will be randomized after mapData loads
+let selectedTicketType = null;  // No ticket selected initially
+let ticketCounts = {
+    yellow: 3,   // for blue routes
+    green: 5,    // for green routes
+    red: 10,     // for red routes
+    black: 6     // for black routes
+};
 
-        function chooseRandomStartPosition() {
-            if (!mapData || !Array.isArray(mapData.locations) || mapData.locations.length === 0) {
-                return;
-            }
+function chooseRandomStartPosition() {
+    if (!mapData || !Array.isArray(mapData.locations) || mapData.locations.length === 0) {
+        return;
+    }
 
-            const randomIndex = Math.floor(Math.random() * mapData.locations.length);
-            currentPosition = mapData.locations[randomIndex].location;
-        }
+    const randomIndex = Math.floor(Math.random() * mapData.locations.length);
+    currentPosition = mapData.locations[randomIndex].location;
+}
 
-        /* 
-           TICKET SELECTION FUNCTION
-           Called when player clicks a ticket button.
-           Highlights the selected ticket and stores the selection.
-           Clicking same ticket again deselects it.
-       */
-        function selectTicket(ticketType) {
-            // Remove selection from all tickets first
-            document.querySelectorAll('.ticket-button').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            
-            // Get the clicked ticket button
-            const ticketButton = document.getElementById(ticketType + 'Ticket');
-            
-            if (selectedTicketType === ticketType) {
-                // Deselect if clicking the same ticket (toggle off)
-                selectedTicketType = null;
-            } else {
-                // Select new ticket and highlight it
-                selectedTicketType = ticketType;
-                ticketButton.classList.add('selected');
-            }
-        }
+/* 
+    TICKET SELECTION FUNCTION
+    Called when player clicks a ticket button.
+    Highlights the selected ticket and stores the selection.
+    Clicking same ticket again deselects it.
+*/
+
 
 /* ============================================================
     GET TRANSPORT TYPES FOR A LOCATION
@@ -135,17 +125,14 @@ function selectTicket(ticketType) {
     that connects to this location.
     ============================================================ */
 function getLocationTransports(locationId) {
-    const transports = { taxi: false, ebike: false, bus: false };
+    const transports = { yellow: false, green: false, red: false, black: false };
     
     mapData.connections.forEach(conn => {
         if (conn.from === locationId || conn.to === locationId) {
             const ticketType = ticketTypeMap[conn.colour];
-            if (ticketType) {
-                transports[ticketType] = true;
-            }
+            if (ticketType) transports[ticketType] = true;
         }
     });
-    
     return transports;
 }
 
@@ -155,76 +142,25 @@ function getLocationTransports(locationId) {
     transport types (red=taxi, green=ebike, blue=bus).
     ============================================================ */
 function getMarkerColorClass(transports) {
-    const { taxi, ebike, bus } = transports;
+    const { yellow, green, red, black } = transports;
     
-    // All three transports
-    if (taxi && ebike && bus) return 'all-transport';
-    
-    // Two transports
-    if (taxi && ebike) return 'taxi-ebike';
-    if (taxi && bus) return 'taxi-bus';
-    if (ebike && bus) return 'ebike-bus';
-    
-    // Single transport
-    if (taxi) return 'taxi-only';
-    if (ebike) return 'ebike-only';
-    if (bus) return 'bus-only';
-    
-    return ''; // No transports (shouldn't happen)
+    if (yellow && green && red && black) return 'all-transport';
+    if (yellow && green && red) return 'taxi-ebike-bus';
+    if (yellow && green && black) return 'taxi-ebike-boat';
+    if (yellow && red && black) return 'taxi-bus-boat';
+    if (green && red && black) return 'ebike-bus-boat';
+    if (yellow && green) return 'taxi-ebike';
+    if (yellow && red) return 'taxi-bus';
+    if (yellow && black) return 'taxi-boat';
+    if (green && red) return 'ebike-bus';
+    if (green && black) return 'ebike-boat';
+    if (red && black) return 'bus-boat';
+    if (yellow) return 'taxi-only';
+    if (green) return 'ebike-only';
+    if (red) return 'bus-only';
+    if (black) return 'boat-only';
+    return '';
 }
-        /* ============================================================
-           GET TRANSPORT TYPES FOR A LOCATION
-           Returns an object with boolean flags for each transport type
-           that connects to this location.
-           ============================================================ */
-        function getLocationTransports(locationId) {
-            const transports = { taxi: false, ebike: false, bus: false, boat: false };
-            
-            mapData.connections.forEach(conn => {
-                if (conn.from === locationId || conn.to === locationId) {
-                    const ticketType = ticketTypeMap[conn.colour];
-                    if (ticketType) {
-                        transports[ticketType] = true;
-                    }
-                }
-            });
-            
-            return transports;
-        }
-        
-        /* ============================================================
-           GET MARKER COLOR CLASS
-           Returns the CSS class for a location based on available
-           transport types (red=taxi, green=ebike, blue=bus).
-           ============================================================ */
-        function getMarkerColorClass(transports) {
-            const { taxi, ebike, bus, boat } = transports;
-            
-            // Four transports
-            if (taxi && ebike && bus && boat) return 'all-transport';
-            
-            // Three transports
-            if (taxi && ebike && bus) return 'taxi-ebike-bus';
-            if (taxi && ebike && boat) return 'taxi-ebike-boat';
-            if (taxi && bus && boat) return 'taxi-bus-boat';
-            if (ebike && bus && boat) return 'ebike-bus-boat';
-            
-            // Two transports
-            if (taxi && ebike) return 'taxi-ebike';
-            if (taxi && bus) return 'taxi-bus';
-            if (taxi && boat) return 'taxi-boat';
-            if (ebike && bus) return 'ebike-bus';
-            if (ebike && boat) return 'ebike-boat';
-            if (bus && boat) return 'bus-boat';
-            
-            // Single transport
-            if (taxi) return 'taxi-only';
-            if (ebike) return 'ebike-only';
-            if (bus) return 'bus-only';
-            if (boat) return 'boat-only';
-            
-            return ''; // No transports (shouldn't happen)
-        }
 
 /* ============================================================
     MAP INITIALIZATION FUNCTION
@@ -430,6 +366,16 @@ function handleLocationClick(targetLocation) {
     ============================================================ */
 function attemptMove(targetLocation) {
     const connection = getValidConnection(currentPosition, targetLocation);
+
+    // Check it's the right turn for your role
+    if (myRole === 'fugitive' && currentGameState !== 'fugitive') {
+        showError("It's not your turn!");
+        return;
+    }
+    if (myRole === 'detective' && currentGameState !== 'detective') {
+        showError("It's not your turn!");
+        return;
+    }
     
     // VALIDATION 1: Must have a ticket selected
     if (!selectedTicketType) {
@@ -479,14 +425,19 @@ function executeMove(newPosition) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            "GameID": gameId,
+            "gameID": parseInt(gameId),
             "ticket": usedTicket,
-            "destination": newPosition
+            "destination": parseInt(newPosition)
         })
     })
     .then(response => {
-        if (!response.ok) throw new Error(`Server error: ${response.status}`);
-        return response.json();
+        return response.json().then(body => {
+            if (!response.ok) {
+                console.error('Server rejected move:', JSON.stringify(body));
+                throw new Error(`Server error: ${response.status} - ${body.message}`);
+            }
+            return body;
+        });
     })
     .then(data => {
         console.log('Move confirmed:', data);
@@ -496,9 +447,9 @@ function executeMove(newPosition) {
     })
     .catch(error => {
         console.error('Move failed:', error);
-        showError('Move failed - please try again');
-        // Re-add ticket since move failed
-        selectedTicketType = usedTicket;
+        // The error message now comes through properly
+        showError(error.message.replace('Server error: 400 - ', ''));
+        selectedTicketType = usedTicket; // restore ticket
     });
 
     console.log(`Attempting move to ${newPosition} using ${usedTicket}`);
@@ -519,10 +470,10 @@ function makeMove() {
     Called after a move is made to show remaining tickets.
     ============================================================ */
 function updateTicketDisplay() {
-    document.querySelector('#taxiTicket .ticket-count').textContent = ticketCounts.taxi;
-    document.querySelector('#ebikeTicket .ticket-count').textContent = ticketCounts.ebike;
-    document.querySelector('#busTicket .ticket-count').textContent = ticketCounts.bus;
-            document.querySelector('#boatTicket .ticket-count').textContent = ticketCounts.boat;
+    document.querySelector('#redTicket .ticket-count').textContent = ticketCounts.red;
+    document.querySelector('#greenTicket .ticket-count').textContent = ticketCounts.green;
+    document.querySelector('#yellowTicket .ticket-count').textContent = ticketCounts.yellow;
+    document.querySelector('#blackTicket .ticket-count').textContent = ticketCounts.black;
 }
 
 /* ============================================================
@@ -555,10 +506,11 @@ window.onclick = function(event) {
     ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
     loadMapData().then(() => {
-        initializeMapLocations();
-        loadPlayersFromServer();
-        setInterval(loadPlayersFromServer, 3000);
-    });
+    initializeMapLocations();
+    loadMyPlayerData();
+    loadPlayersFromServer();
+    setInterval(loadPlayersFromServer, 3000);
+});
     
     // Set up drag events for the player piece
     const playerPiece = document.getElementById('playerPiece');
@@ -572,32 +524,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Click on the map to see and log percentage coordinates
     // Use these values to position your markers correctly
     const gameMap = document.getElementById('gameMap');
-    const coordDisplay = document.getElementById('coordDisplay');
+    // const coordDisplay = document.getElementById('coordDisplay');
     
-    gameMap.addEventListener('click', (e) => {
-        const rect = gameMap.getBoundingClientRect();
-        const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-        const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+    // gameMap.addEventListener('click', (e) => {
+    //     const rect = gameMap.getBoundingClientRect();
+    //     const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+    //     const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
         
-        coordDisplay.innerHTML = `xPos: ${xPercent}, yPos: ${yPercent}<br><small>Ctrl+Shift+I to see console log</small>`;
-        console.log(`{ location: X, xPos: ${xPercent}, yPos: ${yPercent}, name: "NAME" },`);
-    });
+    //     coordDisplay.innerHTML = `xPos: ${xPercent}, yPos: ${yPercent}<br><small>Ctrl+Shift+I to see console log</small>`;
+    //     console.log(`{ location: X, xPos: ${xPercent}, yPos: ${yPercent}, name: "NAME" },`);
+    // });
     
-    gameMap.addEventListener('mousemove', (e) => {
-        const rect = gameMap.getBoundingClientRect();
-        const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-        const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-        coordDisplay.textContent = `Hover: ${xPercent}%, ${yPercent}%`;
-    });
+    // gameMap.addEventListener('mousemove', (e) => {
+    //     const rect = gameMap.getBoundingClientRect();
+    //     const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+    //     const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+    //     coordDisplay.textContent = `Hover: ${xPercent}%, ${yPercent}%`;
+    // });
 });
 
-function loadPlayersFromServer(){
-    fetch(`http://trinity-developments.co.uk/games/${gameId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json'},
-    })
+function loadPlayersFromServer() {
+    fetch(`http://trinity-developments.co.uk/games/${gameId}`)
     .then(response => response.json())
     .then(data => {
+        currentGameState = data.state.toLowerCase(); // ← add this line
+        
         const players = data.players.map(player => ({
             id: player.playerId,
             name: player.playerName,
@@ -605,12 +556,11 @@ function loadPlayersFromServer(){
             location: player.location
         }));
 
-        loadMyPosition(players);          // ⬅️ update this player's position
-        updateOtherPlayersOnMap(players); // ⬅️ update other players
+        loadMyPosition(players);
+        updateOtherPlayersOnMap(players);
     })
     .catch(error => console.error('Failed to load players:', error));
 }
-
 function updateOtherPlayersOnMap(players) {
     // Remove all existing other-player pieces first
     document.querySelectorAll('.other-player-piece').forEach(piece => piece.remove());
@@ -644,6 +594,28 @@ function loadMyPosition(players) {
         highlightCurrentLocation();
         document.getElementById('currentPosition').textContent = currentPosition;
     }
+}
+
+let myRole = null; // 'fugitive' or 'detective'
+
+function loadMyPlayerData() {
+    fetch(`http://trinity-developments.co.uk/players/${playerId}`)
+    .then(res => res.json())
+    .then(data => {
+        // Update ticket counts from server
+        ticketCounts.yellow = data.yellow;
+        ticketCounts.green = data.green;
+        ticketCounts.red = data.red;
+        ticketCounts.black = data.black;
+        updateTicketDisplay();
+
+        // Store role so we can show/hide controls
+        myRole = data.role;
+
+        // Update name display
+        document.getElementById('playerName').textContent = data.playerName;
+    })
+    .catch(err => console.error('Failed to load player data:', err));
 }
 
 // let selectedTicketType = null;
