@@ -4,10 +4,10 @@ const playerName = localStorage.getItem('playerName');
 const playerColor = localStorage.getItem('playerColor');
 const isHost = localStorage.getItem('isHost') === 'true';
 
-// Smart API base - uses proxy only on HTTPS (GitHub Pages), direct on localhost
+// API Configuration
 const API_SERVER = 'http://trinity-developments.co.uk';
-const isSecure = window.location.protocol === 'https:';
-const API_BASE = isSecure ? `https://corsproxy.io/?${API_SERVER}` : API_SERVER;
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isLocalhost ? API_SERVER : 'https://corsproxy.io/?' + encodeURIComponent(API_SERVER);
 
 document.getElementById('gameCodeDisplay').textContent = gameId || 'No Game ID';
 

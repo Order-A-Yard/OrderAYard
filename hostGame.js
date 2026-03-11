@@ -1,16 +1,12 @@
 // API Configuration
-// For localhost: direct connection
-// For GitHub Pages (HTTPS): you may need a proxy or the server needs HTTPS
 const API_SERVER = 'http://trinity-developments.co.uk';
-const isSecure = window.location.protocol === 'https:';
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-// On HTTPS (GitHub Pages), try corsproxy. If it fails, the server needs SSL.
-const API_BASE = isSecure 
-    ? `https://corsproxy.io/?${encodeURIComponent(API_SERVER)}`
-    : API_SERVER;
+// Use CORS proxy for GitHub Pages, direct connection for localhost
+const API_BASE = isLocalhost 
+    ? API_SERVER 
+    : 'https://corsproxy.io/?' + encodeURIComponent(API_SERVER);
 
-console.log('Protocol:', window.location.protocol);
-console.log('Is Secure:', isSecure);
 console.log('Using API:', API_BASE);
 
 let selectedColor = null;

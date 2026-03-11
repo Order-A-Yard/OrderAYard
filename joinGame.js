@@ -2,10 +2,10 @@
 let playerName
 let gameCode
 
-// Smart API base - uses proxy only on HTTPS (GitHub Pages), direct on localhost
+// API Configuration
 const API_SERVER = 'http://trinity-developments.co.uk';
-const isSecure = window.location.protocol === 'https:';
-const API_BASE = isSecure ? `https://corsproxy.io/?${API_SERVER}` : API_SERVER;
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isLocalhost ? API_SERVER : 'https://corsproxy.io/?' + encodeURIComponent(API_SERVER);
 
 // Auto-fill game code from URL if present (for QR code scanning)
 function autoFillGameCode() {
