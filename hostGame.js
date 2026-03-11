@@ -1,11 +1,6 @@
 // API Configuration
-const API_SERVER = 'http://trinity-developments.co.uk';
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-// Use CORS proxy for GitHub Pages, direct connection for localhost
-const API_BASE = isLocalhost 
-    ? API_SERVER 
-    : 'https://corsproxy.io/?' + encodeURIComponent(API_SERVER);
+// Using CORS proxy to handle HTTP API from HTTPS pages
+const API_BASE = 'https://corsproxy.io/?http://trinity-developments.co.uk';
 
 console.log('Using API:', API_BASE);
 
