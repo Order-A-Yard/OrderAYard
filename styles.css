@@ -253,6 +253,13 @@ body {
     font-weight: bold;
 }
 
+.qr-instruction {
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 5px;
+}
+
 .game-code-section {
     display: flex;
     flex-direction: column;

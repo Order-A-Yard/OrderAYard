@@ -6,6 +6,27 @@ const isHost = localStorage.getItem('isHost') === 'true';
 
 document.getElementById('gameCodeDisplay').textContent = gameId || 'No Game ID';
 
+// Generate QR Code for joining the game
+function generateQRCode() {
+    const qrImage = document.getElementById('qrCodeImage');
+    if (!qrImage) return;
+    
+    // Build the join URL - uses current host so it works on local network
+    const baseUrl = window.location.origin;
+    const joinUrl = `${baseUrl}/joinGame.html?code=${gameId}`;
+    
+    // Use QR Server API (free, no signup required)
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`;
+    
+    qrImage.src = qrApiUrl;
+    qrImage.alt = `Scan to join game ${gameId}`;
+    
+    console.log('QR Code URL:', joinUrl);
+}
+
+// Generate QR code when page loads
+generateQRCode();
+
         // Game state
         let players = [
             { name: null, color: null, ready: false },

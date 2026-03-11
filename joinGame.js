@@ -2,6 +2,20 @@
 let playerName
 let gameCode
 
+// Auto-fill game code from URL if present (for QR code scanning)
+function autoFillGameCode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeFromUrl = urlParams.get('code');
+    
+    if (codeFromUrl) {
+        document.getElementById('gameCode').value = codeFromUrl;
+        console.log('Game code auto-filled from QR code:', codeFromUrl);
+    }
+}
+
+// Run when page loads
+document.addEventListener('DOMContentLoaded', autoFillGameCode);
+
 //gets data from input forms and saves them to created local variables, sends a post request to add players to game 
 document.getElementById("bottom-button").addEventListener("click", function(){
     playerName = document.getElementById('playerName').value;
