@@ -1,5 +1,11 @@
-const gameId = localStorage.getItem('gameId');
-const playerId = localStorage.getItem('playerId');
+const urlParams = new URLSearchParams(window.location.search);
+const gameId = urlParams.get('gameId') || localStorage.getItem('gameId');
+const playerId = urlParams.get('playerId') || localStorage.getItem('playerId');
+
+// Re-save to localStorage so gamePage.js can read them
+localStorage.setItem('gameId', gameId);
+localStorage.setItem('playerId', playerId);
+
 const playerName = localStorage.getItem('playerName');
 const playerColor = localStorage.getItem('playerColor');
 const isHost = localStorage.getItem('isHost') === 'true';
@@ -88,9 +94,8 @@ function loadPlayersFromServer() {
         const state = data.state.toLowerCase();
         if (state === 'fugitive' || state === 'detective') {
             clearInterval(pollingInterval);
-            clearInterval(gameStateInterval);
-            window.location.href = '/gamePage.html';
-            return; // stop processing
+            window.location.href = `/gamePage.html?playerId=${playerId}&gameId=${gameId}`;
+            return;
         }
 
         const serverPlayers = data.players;

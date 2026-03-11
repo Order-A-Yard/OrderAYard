@@ -47,7 +47,7 @@ document.getElementById("bottom-button").addEventListener("click", function(){
         localStorage.setItem('playerColor', selectedColor);
         localStorage.setItem('gameId', gameCode);
         localStorage.setItem('isHost', 'false');  // This player is not the host
-        window.location.href = "/lobbyPage.html";
+        window.location.href = `/lobbyPage.html?playerId=${data.playerId}&gameId=${gameCode}`;
     })
     .catch(error => {
         console.error('Error joining game:', error);

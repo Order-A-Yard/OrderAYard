@@ -109,7 +109,7 @@ async function startGame() {
         localStorage.setItem('isHost', 'true');
 
         // Redirect to lobby
-        window.location.href = 'lobbyPage.html';
+        window.location.href = `lobbyPage.html?playerId=${playerData.playerId}&gameId=${gameId}`;
 
     } catch (error) {
         console.error('Error starting game:', error);

@@ -1,5 +1,6 @@
-const gameId = localStorage.getItem('gameId');
-const playerId = localStorage.getItem('playerId');
+const urlParams = new URLSearchParams(window.location.search);
+const gameId = urlParams.get('gameId') || localStorage.getItem('gameId');
+const playerId = urlParams.get('playerId') || localStorage.getItem('playerId');
         /* ============================================================
            MAP DATA
            Loaded at runtime from "mini map.json".
