@@ -1,5 +1,5 @@
 const gameId = localStorage.getItem('gameId');
-const playerID = localStorage.getItem('playerID');
+const playerId = localStorage.getItem('playerId');
         /* ============================================================
            MAP DATA
            Loaded at runtime from "mini map.json".
@@ -469,36 +469,39 @@ function attemptMove(targetLocation) {
     ============================================================ */
 function executeMove(newPosition) {
     const usedTicket = selectedTicketType;
-    
-    // Deduct one ticket of the used type
-    ticketCounts[selectedTicketType]--;
-    updateTicketDisplay();
-    
-    // Update player's position in game state
-    currentPosition = newPosition;
-    document.getElementById('currentPosition').textContent = newPosition;
-    
-    // Move player piece visually on the map
-    updatePlayerPiecePosition();
-    highlightCurrentLocation();
-    
-    // Reset ticket selection (must select again for next move)
+
+    // Reset ticket selection immediately for responsiveness
     selectedTicketType = null;
     document.querySelectorAll('.ticket-button').forEach(btn => btn.classList.remove('selected'));
 
-    //sends move data to server through post request
-    fetch(`http://trinity-developments.co.uk/players/${playerID}/moves`, {
+    // Send move to server
+    fetch(`http://trinity-developments.co.uk/players/${playerId}/moves`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             "GameID": gameId,
-            "ticket": usedTicket,       // saved before reset
-            "destination": newPosition  // passed into function
+            "ticket": usedTicket,
+            "destination": newPosition
         })
     })
-    loadPlayersFromServer();
-    
-    console.log(`Moved to ${newPosition} using ${usedTicket}`);
+    .then(response => {
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Move confirmed:', data);
+        ticketCounts[usedTicket]--;
+        updateTicketDisplay();
+        loadPlayersFromServer(); // refresh all positions from server
+    })
+    .catch(error => {
+        console.error('Move failed:', error);
+        showError('Move failed - please try again');
+        // Re-add ticket since move failed
+        selectedTicketType = usedTicket;
+    });
+
+    console.log(`Attempting move to ${newPosition} using ${usedTicket}`);
 }
 
 /* ============================================================
@@ -589,14 +592,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadPlayersFromServer(){
-    //this part needs to get list of all players and save their IDs as local variables
     fetch(`http://trinity-developments.co.uk/games/${gameId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json'},
     })
     .then(response => response.json())
     .then(data => {
-        // save all players from the response
         const players = data.players.map(player => ({
             id: player.playerId,
             name: player.playerName,
@@ -604,11 +605,10 @@ function loadPlayersFromServer(){
             location: player.location
         }));
 
-        updateOtherPlayersOnMap(players);
-        players.forEach(player => {
-            console.log(`Player ${player.name} is at ${player.location}`);
-        });
+        loadMyPosition(players);          // ⬅️ update this player's position
+        updateOtherPlayersOnMap(players); // ⬅️ update other players
     })
+    .catch(error => console.error('Failed to load players:', error));
 }
 
 function updateOtherPlayersOnMap(players) {
@@ -617,7 +617,7 @@ function updateOtherPlayersOnMap(players) {
 
     players.forEach(player => {
         // Skip the current player (they have their own piece)
-        if (player.id === parseInt(playerID)) return;
+        if (player.id === parseInt(playerId)) return;
 
         // Find location data for this player's position
         const loc = mapData.locations.find(l => l.location === parseInt(player.location));
@@ -634,6 +634,16 @@ function updateOtherPlayersOnMap(players) {
 
         document.getElementById('locationMarkers').appendChild(piece);
     });
+}
+
+function loadMyPosition(players) {
+    const me = players.find(p => p.id === parseInt(playerId));
+    if (me && me.location && me.location !== 'Hidden') {
+        currentPosition = parseInt(me.location);
+        updatePlayerPiecePosition();
+        highlightCurrentLocation();
+        document.getElementById('currentPosition').textContent = currentPosition;
+    }
 }
 
 // let selectedTicketType = null;

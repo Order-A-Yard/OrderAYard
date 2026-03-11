@@ -42,7 +42,7 @@ document.getElementById("bottom-button").addEventListener("click", function(){
     .then(data => {
         console.log("Server response:", data);
         // Store player info in localStorage (matching hostGame.js format)
-        localStorage.setItem('playerId', data.playerId);  // lowercase 'd' to match hostGame.js
+        localStorage.setItem('playerId', data.playerId);
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('playerColor', selectedColor);
         localStorage.setItem('gameId', gameCode);

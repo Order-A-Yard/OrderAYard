@@ -1,5 +1,5 @@
 const gameId = localStorage.getItem('gameId');
-const playerId = localStorage.getItem('playerId');  // Fixed: was 'playerID', hostGame.js stores as 'playerId'
+const playerId = localStorage.getItem('playerId');
 const playerName = localStorage.getItem('playerName');
 const playerColor = localStorage.getItem('playerColor');
 const isHost = localStorage.getItem('isHost') === 'true';
