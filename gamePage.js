@@ -11,12 +11,7 @@ const turnRoleStorageKey = gameId ? `turnRole:${gameId}` : 'turnRole';
 const mrXLastKnownKey = gameId ? `mrXLastKnown:${gameId}` : 'mrXLastKnown';
 let mrXLastKnownLocation = null;
 
-/* ============================================================
-   BROADCAST CHANNEL
-   Syncs game events (moves, turn changes) instantly across all
-   open tabs/windows for this game, without waiting for the
-   3-second server poll.
-   ============================================================ */
+// Broadcast channel for instant cross-tab game sync.
 const gameChannel = gameId ? new BroadcastChannel(`oay_game_${gameId}`) : null;
 
 if (gameChannel) {
@@ -211,21 +206,11 @@ function checkImmediateDetectiveCapture(targetLocation) {
     endGame(`${name} landed on Mr. X at location ${mrXLocation}. Game over.`);
     return true;
 }
-        /* ============================================================
-           MAP DATA
-           Loaded at runtime from "mini map.json".
-           mapData is null until the fetch resolves; all rendering
-           waits until loadMapData() resolves.
-           ============================================================ */
+// Map data loaded at runtime from "mini map.json".
         let mapData = null;
 
         
-        /* ============================================================
-           LOAD MAP DATA FROM JSON
-           Fetches "mini map.json" and assigns it to mapData.
-           Falls back to the commented _mapDataFallback object above
-           if the fetch fails (e.g. file:// protocol with no server).
-           ============================================================ */
+// Fetch map data from JSON and assign it to mapData.
         function loadMapData() {
             return fetch('mini map.json')
                 .then(res => {
@@ -243,14 +228,7 @@ function checkImmediateDetectiveCapture(targetLocation) {
                     // mapData stays null; initializeMapLocations will log a clear error
                 });
         }
-         /* ============================================================
-           Used to validate if player has the right ticket for a route.
-           
-           Transport types for this map:
-           - Red lines   = Taxi routes
-           - Green lines = E-Bike routes
-           - Blue lines  = Bus routes
-           ============================================================ */
+                // Map route colors to server ticket types.
 
         //server expects these ticket types exactly 
         const ticketTypeMap = {
@@ -260,20 +238,8 @@ function checkImmediateDetectiveCapture(targetLocation) {
             black: 'black'    // black routes = black tickets
         };
 
-/* ============================================================
-    GAME STATE VARIABLES
-    These track the current state of the game:
-    - currentPosition: Which location the player is at
-    - selectedTicketType: Which ticket is currently selected
-    - ticketCounts: How many of each ticket the player has
-    ============================================================ */
+// Ticket selection handler.
 
-/* ============================================================
-    TICKET SELECTION FUNCTION
-    Called when player clicks a ticket button.
-    Highlights the selected ticket and stores the selection.
-    Clicking same ticket again deselects it.
-    ============================================================ */
 function selectTicket(ticketType) {
     document.querySelectorAll('.ticket-button').forEach(btn => {
         btn.classList.remove('selected');
@@ -298,13 +264,7 @@ function selectTicket(ticketType) {
         if (ticketButton) ticketButton.classList.add('selected');
     }
 }
-/* ============================================================
-    GAME STATE VARIABLES
-    These track the current state of the game:
-    - currentPosition: Which location the player is at
-    - selectedTicketType: Which ticket is currently selected
-    - ticketCounts: How many of each ticket the player has
-    ============================================================ */
+// Client-side game state variables.
 let currentPosition = 1;        // Will be randomized after mapData loads
 let selectedTicketType = null;  // No ticket selected initially
 let ticketCounts = {
@@ -338,13 +298,7 @@ function getStoredMrXStartLocation() {
     return toLocationNumber(localStorage.getItem(mrXStartStorageKey));
 }
 
-/* ============================================================
-   MR. X LAST-KNOWN LOCATION HELPERS
-   Detective screens can't see Mr. X's real server position
-   (it comes back as "hidden"). These helpers let Mr. X's tab
-   broadcast their real location so all other screens can place
-   a fallback "last seen" marker on the map.
-   ============================================================ */
+// Mr. X last-known location helpers for hidden server positions.
 function persistMrXLastKnown(location) {
     const parsed = toLocationNumber(location);
     if (parsed === null) return;
@@ -594,19 +548,7 @@ function chooseRandomStartPosition() {
     currentPosition = mapData.locations[randomIndex].location;
 }
 
-/* 
-    TICKET SELECTION FUNCTION
-    Called when player clicks a ticket button.
-    Highlights the selected ticket and stores the selection.
-    Clicking same ticket again deselects it.
-*/
-
-
-/* ============================================================
-    GET TRANSPORT TYPES FOR A LOCATION
-    Returns an object with boolean flags for each transport type
-    that connects to this location.
-    ============================================================ */
+// Return transport flags for a location.
 function getLocationTransports(locationId) {
     const transports = { yellow: false, green: false, red: false, black: false };
     
@@ -619,11 +561,7 @@ function getLocationTransports(locationId) {
     return transports;
 }
 
-/* ============================================================
-    GET MARKER COLOR CLASS
-    Returns the CSS class for a location based on available
-    transport types (red=taxi, green=ebike, blue=bus).
-    ============================================================ */
+// Return marker CSS class from available transport types.
 function getMarkerColorClass(transports) {
     const { yellow, green, red, black } = transports;
     
@@ -645,14 +583,7 @@ function getMarkerColorClass(transports) {
     return '';
 }
 
-/* ============================================================
-    MAP INITIALIZATION FUNCTION
-    Called when page loads to set up the game board:
-    - Creates location markers from mapData
-    - Adds event listeners for drag/drop and click
-    - Positions the player piece at starting location
-    - Colors each marker based on available transport types
-    ============================================================ */
+// Initialize map markers, interactions, and player position.
 function initializeMapLocations() {
     const markersContainer = document.getElementById('locationMarkers');
     
@@ -689,11 +620,7 @@ function initializeMapLocations() {
     highlightCurrentLocation();
 }
 
-/* ============================================================
-    PLAYER PIECE POSITION UPDATE
-    Moves the player piece visually to match currentPosition.
-    Calculates correct pixel position from map data.
-    ============================================================ */
+// Move the player piece to the current map location.
 function updatePlayerPiecePosition() {
     const loc = mapData.locations.find(l => l.location === currentPosition);
     const playerPiece = document.getElementById('playerPiece');
@@ -705,11 +632,7 @@ function updatePlayerPiecePosition() {
     
 }
 
-/* ============================================================
-    CURRENT LOCATION HIGHLIGHT
-    Adds visual indicator to show which location player is on.
-    Removes highlight from all others.
-    ============================================================ */
+// Highlight the player's current location marker.
 function highlightCurrentLocation() {
     document.querySelectorAll('.location-marker').forEach(marker => {
         marker.classList.remove('current');
@@ -719,12 +642,7 @@ function highlightCurrentLocation() {
     });
 }
 
-/* ============================================================
-    CONNECTION VALIDATION FUNCTIONS
-    These functions check if moves are valid based on:
-    - Direct connections between locations
-    - Ticket type matching route color
-    ============================================================ */
+// Connection and ticket validation helpers.
 
 // Check if there's a direct connection between two locations
 // Returns the connection object if found, undefined otherwise
@@ -756,11 +674,7 @@ function getValidDestinations() {
         .map(conn => conn.from === currentPosition ? conn.to : conn.from);
 }
 
-/* ============================================================
-    ERROR TOAST NOTIFICATION
-    Displays a red error message at the bottom of the screen.
-    Auto-removes after 3 seconds.
-    ============================================================ */
+// Show a temporary error toast.
 function showError(message) {
     // Remove any existing toast first
     const existing = document.querySelector('.error-toast');
@@ -776,16 +690,7 @@ function showError(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
-/* ============================================================
-    DRAG AND DROP HANDLERS
-    Handle the drag-and-drop interaction for moving player piece:
-    - handleDragStart: When user starts dragging the piece
-    - handleDragEnd: When user stops dragging
-    - handleDragOver: While dragging over a drop zone
-    - handleDragEnter: When piece enters a drop zone
-    - handleDragLeave: When piece leaves a drop zone
-    - handleDrop: When piece is dropped on a location
-    ============================================================ */
+// Drag-and-drop handlers for moving the player piece.
 
 // Called when player starts dragging their piece
 function handleDragStart(e) {
@@ -838,21 +743,13 @@ function handleDrop(e) {
     attemptMove(targetLocation);
 }
 
-/* ============================================================
-    CLICK TO MOVE HANDLER
-    Alternative to drag/drop - click a location to move there.
-    ============================================================ */
+// Click-to-move alternative to drag and drop.
 function handleLocationClick(targetLocation) {
     if (targetLocation === currentPosition) return;  // Can't move to same spot
     attemptMove(targetLocation);
 }
 
-/* ============================================================
-    MOVE ATTEMPT FUNCTION
-    Validates whether a move to target location is legal.
-    Checks: ticket selected, connection exists, correct ticket type,
-    and ticket availability. Shows error if invalid.
-    ============================================================ */
+// Validate and process a requested move.
 function attemptMove(targetLocation) {
     if (gameHasEnded) {
         showError(gameEndMessage || 'Game is over.');
@@ -900,12 +797,7 @@ function attemptMove(targetLocation) {
     executeMove(targetLocation);
 }
 
-    /* ============================================================
-        WILD MOVE (teleport)
-        Wild can move to any destination. We attempt server sync with
-        ticket 'wild', and if server rejects/unavailable we still apply
-        locally for testing flow.
-       ============================================================ */
+// Wild ticket move handler with server-first, local-fallback behavior.
     function executeWildMove(newPosition, ticketType = 'wild') {
         const parsedDestination = parseInt(newPosition, 10);
         const serverTicket = ticketType;
@@ -972,14 +864,7 @@ function attemptMove(targetLocation) {
         console.log(`[Move] Moving to ${parsedDestination} using ${ticketType}`);
     }
 
-/* ============================================================
-    EXECUTE MOVE FUNCTION
-    Actually performs the move after validation passes:
-    - Deducts the used ticket
-    - Updates player position
-    - Moves the visual piece
-    - Resets ticket selection
-    ============================================================ */
+// Execute a standard move and sync it with the server.
 function executeMove(newPosition) {
     const usedTicket = selectedTicketType;
 
@@ -1059,20 +944,12 @@ function executeMove(newPosition) {
     console.log(`Attempting move to ${newPosition} using ${usedTicket}`);
 }
 
-/* ============================================================
-    MAKE MOVE BUTTON HANDLER
-    Currently just shows instruction since moves are made
-    via drag/drop or clicking locations directly.
-    ============================================================ */
+// Make Move button handler.
 function makeMove() {
     showError('Drag your piece to a location or click a destination!');
 }
 
-/* ============================================================
-    TICKET DISPLAY UPDATE
-    Refreshes the ticket count numbers shown on each button.
-    Called after a move is made to show remaining tickets.
-    ============================================================ */
+// Refresh ticket counts shown on the ticket buttons.
 function updateTicketDisplay() {
     document.querySelector('#redTicket .ticket-count').textContent = ticketCounts.red;
     document.querySelector('#greenTicket .ticket-count').textContent = ticketCounts.green;
@@ -1081,12 +958,7 @@ function updateTicketDisplay() {
         document.querySelector('#wildTicket .ticket-count').textContent = ticketCounts.wild;
 }
 
-/* ============================================================
-    MAP MODAL FUNCTIONS
-    Control the larger map popup/modal:
-    - viewLargerMap: Opens the modal
-    - closeMapModal: Closes the modal
-    ============================================================ */
+// Open and close the larger map modal.
 function viewLargerMap() {
     document.getElementById('mapModal').style.display = 'flex';
 }
@@ -1102,13 +974,7 @@ window.onclick = function(event) {
         closeMapModal();
     }
 }
-/* ============================================================
-    PAGE INITIALIZATION
-    Runs when the DOM is fully loaded:
-    - Sets up all location markers on the map
-    - Adds drag event listeners to player piece
-    - Displays starting position
-    ============================================================ */
+// Initialize map state and UI when the DOM is ready.
 document.addEventListener('DOMContentLoaded', () => {
     updateMrXDebug({
         currentPosition,
