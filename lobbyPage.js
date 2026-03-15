@@ -1,6 +1,7 @@
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId') || localStorage.getItem('gameId');
 const playerId = urlParams.get('playerId') || localStorage.getItem('playerId');
+const API_BASE = localStorage.getItem('apiBase') || 'http://trinity-developments.co.uk';
 
 // Re-save to localStorage so gamePage.js can read them
 localStorage.setItem('gameId', gameId);
@@ -84,7 +85,7 @@ function updateReadyButton() {
 function loadPlayersFromServer() { 
     if (!gameId) return;
     
-    fetch(`http://trinity-developments.co.uk/games/${gameId}`)
+    fetch(`${API_BASE}/games/${gameId}`)
     .then(res => {
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
         return res.json();
@@ -133,7 +134,7 @@ function loadPlayersFromServer() {
 function checkGameState() {
     if (!gameId) return;
 
-    fetch(`http://trinity-developments.co.uk/games/${gameId}`)
+    fetch(`${API_BASE}/games/${gameId}`)
     .then(response => response.json())
     .then(data => {
         console.log('Game state:', data.state);
@@ -154,7 +155,7 @@ function checkGameState() {
 }
 
 document.getElementById('startButton').addEventListener("click", function(){
-    fetch(`http://trinity-developments.co.uk/games/${gameId}/start/${playerId}`, {
+    fetch(`${API_BASE}/games/${gameId}/start/${playerId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
     })

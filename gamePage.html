@@ -73,11 +73,18 @@
                 🚢 Boat
                 <span class="ticket-count">6</span>
             </button>
+                <button class="ticket-button wild" onclick="selectTicket('wild')" id="wildTicket">
+                    🌑 Wild
+                    <span class="ticket-count">2</span>
+                </button>
             
             <!-- Position and Move Section -->
                  <div class="movement-log-section">
             <h3>Movement Log</h3>
             <div id="movementLog" class="movement-log"></div>
+                <div id="mrxDebugPanel" style="margin-top:8px; padding:8px; border:1px solid #ddd; border-radius:6px; font-size:12px; line-height:1.4; background:#f9f9f9; color:#222;">
+                    Mr. X Debug: waiting for values...
+                </div>
             </div>
 
             <div class="position-move-section">

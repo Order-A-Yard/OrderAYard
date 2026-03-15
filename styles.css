@@ -576,6 +576,16 @@ body {
     background-color: #000000af;
 }
 
+    .ticket-button.wild {
+        background: linear-gradient(135deg, #1a0033, #4b0082);
+        border: 2px dashed #c084fc;
+        color: #e9d5ff;
+    }
+
+    .ticket-button.wild:hover {
+        background: linear-gradient(135deg, #2d0050, #6b21a8);
+    }
+
 .ticket-button.selected {
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 3px 6px rgba(0, 0, 0, 0.3);

@@ -1,4 +1,4 @@
-const API_BASE = 'http://trinity-developments.co.uk';
+const API_BASE = localStorage.getItem('apiBase') || 'http://trinity-developments.co.uk';
 
 let selectedColor = null;
 
@@ -65,7 +65,7 @@ async function startGame() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name: `${playerName}'s Game`,
-                mapId: 1,
+                mapId: 567,
                 gameLength: 'short'
             })
         });

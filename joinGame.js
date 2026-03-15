@@ -1,6 +1,7 @@
 //creating local variables to store playernames and gamecode. will be used to add player to lobby.
 let playerName
 let gameCode
+const API_BASE = localStorage.getItem('apiBase') || 'http://trinity-developments.co.uk';
 
 //gets data from input forms and saves them to created local variables, sends a post request to add players to game 
 document.getElementById("bottom-button").addEventListener("click", function(){
@@ -27,7 +28,7 @@ document.getElementById("bottom-button").addEventListener("click", function(){
     joinButton.disabled = true;
     joinButton.textContent = 'Joining game...';
 
-    fetch(`http://trinity-developments.co.uk/games/${gameCode}/players`, {
+    fetch(`${API_BASE}/games/${gameCode}/players`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

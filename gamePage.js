@@ -1,16 +1,121 @@
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId') || localStorage.getItem('gameId');
 const playerId = urlParams.get('playerId') || localStorage.getItem('playerId');
-const API_BASE = 'http://trinity-developments.co.uk';
+const API_BASE = localStorage.getItem('apiBase') || 'http://trinity-developments.co.uk';
 const isHost = localStorage.getItem('isHost') === 'true';
 const mrXStartStorageKey = gameId ? `mrXStartLocation:${gameId}` : 'mrXStartLocation';
+const turnRoleStorageKey = gameId ? `turnRole:${gameId}` : 'turnRole';
+
+// Stores Mr. X's most recently broadcast location so detectives can
+// show a fallback marker when the server returns "hidden".
+const mrXLastKnownKey = gameId ? `mrXLastKnown:${gameId}` : 'mrXLastKnown';
+let mrXLastKnownLocation = null;
+
+/* ============================================================
+   BROADCAST CHANNEL
+   Syncs game events (moves, turn changes) instantly across all
+   open tabs/windows for this game, without waiting for the
+   3-second server poll.
+   ============================================================ */
+const gameChannel = gameId ? new BroadcastChannel(`oay_game_${gameId}`) : null;
+
+if (gameChannel) {
+    gameChannel.onmessage = (event) => {
+        const { type, isMrX, destination, state } = event.data;
+
+        if (type === 'playerMoved') {
+            // Local fallback for stale server turn state.
+            setTurnRole(isMrX ? 'detective' : 'fugitive', 'broadcast-move');
+
+            // If Mr. X just moved, save their real location so we can show
+            // it on detectives' maps even though the server returns "hidden".
+            if (isMrX && destination) {
+                persistMrXLastKnown(destination);
+                // Optimistically place the marker right now without
+                // waiting for the server round-trip.
+                placeMrXLastKnownMarker(destination);
+            }
+            loadPlayersFromServer();
+            refreshMovementLog();
+        }
+
+        if (type === 'turnChanged') {
+            const broadcastRole = normalizeTurnRole(state);
+            if (broadcastRole) setTurnRole(broadcastRole, 'broadcast-turn');
+            loadPlayersFromServer();
+            refreshMovementLog();
+        }
+    };
+}
 
 let currentGameState = 'open';
+let turnRoleOverride = normalizeTurnRole(localStorage.getItem(turnRoleStorageKey));
 let myRole = null; // 'fugitive' or 'detective'
 let mrXPlayerId = null;
 let resolveMrXPromise = null;
 let mrXFallbackApplied = false;
 let randomFallbackApplied = false;
+let mrXDebugState = {
+    playerId: null,
+    gameId: null,
+    apiBase: null,
+    role: null,
+    serverLocationRaw: null,
+    serverLocationParsed: null,
+    movesStartRaw: null,
+    canonicalStart: null,
+    currentPosition: null,
+    movesFetchStatus: 'not-run'
+};
+
+function updateMrXDebug(partial = {}) {
+    mrXDebugState = { ...mrXDebugState, ...partial };
+    const panel = document.getElementById('mrxDebugPanel');
+    if (!panel) return;
+
+    const roleText = mrXDebugState.role || 'unknown';
+    const playerIdText = mrXDebugState.playerId ?? 'n/a';
+    const gameIdText = mrXDebugState.gameId ?? 'n/a';
+    const apiBaseText = mrXDebugState.apiBase ?? 'n/a';
+    const rawLocationText = mrXDebugState.serverLocationRaw ?? 'n/a';
+    const parsedLocationText = mrXDebugState.serverLocationParsed ?? 'hidden/null';
+    const movesStartRawText = mrXDebugState.movesStartRaw ?? 'n/a';
+    const canonicalStartText = mrXDebugState.canonicalStart ?? 'n/a';
+    const currentPosText = mrXDebugState.currentPosition ?? currentPosition ?? 'n/a';
+    const movesFetchStatusText = mrXDebugState.movesFetchStatus ?? 'unknown';
+
+    panel.innerHTML =
+        `Mr. X Debug<br>` +
+        `PlayerId: ${playerIdText} | GameId: ${gameIdText}<br>` +
+        `API: ${apiBaseText}<br>` +
+        `Role: ${roleText}<br>` +
+        `Server /players location: ${rawLocationText}<br>` +
+        `Parsed server location: ${parsedLocationText}<br>` +
+        `Raw start (/moves): ${movesStartRawText}<br>` +
+        `Canonical start (/moves): ${canonicalStartText}<br>` +
+        `Client currentPosition: ${currentPosText}<br>` +
+        `Moves fetch: ${movesFetchStatusText}`;
+}
+
+function normalizeTurnRole(value) {
+    if (typeof value !== 'string') return null;
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'fugitive' || normalized === 'detective') return normalized;
+    return null;
+}
+
+function setTurnRole(role, source = 'unknown') {
+    const normalized = normalizeTurnRole(role);
+    if (!normalized) return;
+    turnRoleOverride = normalized;
+    currentGameState = normalized;
+    localStorage.setItem(turnRoleStorageKey, normalized);
+    console.log(`[Turn] Set to ${normalized} from ${source}`);
+}
+
+function getEffectiveTurnRole() {
+    return normalizeTurnRole(turnRoleOverride) || normalizeTurnRole(currentGameState);
+}
         /* ============================================================
            MAP DATA
            Loaded at runtime from "mini map.json".
@@ -84,7 +189,8 @@ function selectTicket(ticketType) {
         red: 'redTicket',
         green: 'greenTicket', 
         yellow: 'yellowTicket',
-        black: 'blackTicket'
+           black: 'blackTicket',
+           wild: 'wildTicket'
     };
 
     const buttonId = ticketButtonIds[ticketType];
@@ -110,7 +216,8 @@ let ticketCounts = {
     yellow: 3,   // for blue routes
     green: 5,    // for green routes
     red: 10,     // for red routes
-    black: 6     // for black routes
+        black: 6,    // for black routes
+        wild: 2      // wildcard — move to any location, bypasses connections
 };
 
 function toLocationNumber(value) {
@@ -134,6 +241,51 @@ function persistMrXStartLocation(location, source = 'unknown') {
 
 function getStoredMrXStartLocation() {
     return toLocationNumber(localStorage.getItem(mrXStartStorageKey));
+}
+
+/* ============================================================
+   MR. X LAST-KNOWN LOCATION HELPERS
+   Detective screens can't see Mr. X's real server position
+   (it comes back as "hidden"). These helpers let Mr. X's tab
+   broadcast their real location so all other screens can place
+   a fallback "last seen" marker on the map.
+   ============================================================ */
+function persistMrXLastKnown(location) {
+    const parsed = toLocationNumber(location);
+    if (parsed === null) return;
+    mrXLastKnownLocation = parsed;
+    localStorage.setItem(mrXLastKnownKey, String(parsed));
+    console.log(`[MrX] Last-known location saved: ${parsed}`);
+}
+
+function getMrXLastKnown() {
+    if (mrXLastKnownLocation !== null) return mrXLastKnownLocation;
+    return toLocationNumber(localStorage.getItem(mrXLastKnownKey));
+}
+
+function placeMrXLastKnownMarker(location) {
+    // Remove any stale last-known marker first.
+    const existing = document.getElementById('mrXLastKnownPiece');
+    if (existing) existing.remove();
+
+    if (!mapData || location === null) return;
+
+    const loc = mapData.locations.find(l => l.location === location);
+    if (!loc) return;
+
+    const piece = document.createElement('div');
+    piece.id = 'mrXLastKnownPiece';
+    piece.className = 'other-player-piece mrx-last-known';
+    piece.style.left = `${loc.xPos}%`;
+    piece.style.top = `${loc.yPos}%`;
+    piece.style.backgroundColor = '#000';
+    piece.style.color = '#fff';
+    piece.style.border = '2px dashed #ff0';
+    piece.style.opacity = '0.75';
+    piece.title = `Mr. X last seen at location ${location}`;
+    piece.textContent = '?';
+
+    document.getElementById('locationMarkers').appendChild(piece);
 }
 
 function getPlayerRandomStartStorageKey(targetPlayerId) {
@@ -175,12 +327,16 @@ function pickDeterministicRandomStart(occupiedLocations = []) {
         .filter(loc => !occupiedSet.has(loc));
 
     const pool = candidates.length > 0 ? candidates : mapData.locations.map(loc => loc.location);
-    const seedSource = `${gameId || 'game'}:${playerId || 'player'}:${Date.now()}`;
-    const seed = hashStringToSeed(seedSource);
-    return pool[seed % pool.length];
+
+    // Use a truly random index so players spread across the full map.
+    return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function applyRandomFallbackStart(players = []) {
+    if (myRole === 'fugitive') {
+        return;
+    }
+
     const meId = parseInt(playerId, 10);
     const storedStart = getStoredRandomStart(meId);
     const occupied = Array.isArray(players) ? players.map(p => p.location) : [];
@@ -557,9 +713,15 @@ function handleDragEnter(e) {
     const targetLocation = parseInt(e.target.dataset.location);
     if (targetLocation === currentPosition) return;  // Can't drop on current location
     
+    // Wild ticket can go anywhere.
+    if (selectedTicketType === 'wild') {
+        e.target.classList.add('valid-drop');
+        return;
+    }
+
     const connection = getValidConnection(currentPosition, targetLocation);
-    
-    // Show green if valid move, red if invalid
+
+    // Standard tickets require a connected route with matching color.
     if (connection && selectedTicketType && canMoveWithTicket(connection, selectedTicketType)) {
         e.target.classList.add('valid-drop');
     } else {
@@ -597,45 +759,115 @@ function handleLocationClick(targetLocation) {
     and ticket availability. Shows error if invalid.
     ============================================================ */
 function attemptMove(targetLocation) {
+    // Turn ownership is enforced by the server (player.turn) so
+    // client role state cannot incorrectly block valid moves.
     const connection = getValidConnection(currentPosition, targetLocation);
-
-    // Check it's the right turn for your role
-    if (myRole === 'fugitive' && currentGameState !== 'fugitive') {
-        showError("It's not your turn!");
-        return;
-    }
-    if (myRole === 'detective' && currentGameState !== 'detective') {
-        showError("It's not your turn!");
-        return;
-    }
     
     // VALIDATION 1: Must have a ticket selected
     if (!selectedTicketType) {
         showError('Select a ticket type first!');
         return;
     }
-    
-    // VALIDATION 2: Must have direct connection
+
+    // Wild ticket bypasses route checks and can move anywhere.
+    if (selectedTicketType === 'wild') {
+        if (ticketCounts.wild <= 0) {
+            showError('No Wild tickets remaining!');
+            return;
+        }
+        executeWildMove(targetLocation, 'wild');
+        return;
+    }
+
+    // Standard tickets must follow map routes.
     if (!connection) {
         showError('No direct connection to this location!');
         return;
     }
-    
-    // VALIDATION 3: Ticket type must match route color
+
     if (!canMoveWithTicket(connection, selectedTicketType)) {
         showError(`Cannot use ${selectedTicketType} on this route. Need ${ticketTypeMap[connection.colour]}.`);
         return;
     }
-    
-    // VALIDATION 4: Must have tickets remaining
+
+    // VALIDATION 2: Must have tickets remaining
     if (ticketCounts[selectedTicketType] <= 0) {
         showError('No tickets remaining!');
         return;
     }
     
-    // All validations passed - execute the move
+    // Standard move flow
     executeMove(targetLocation);
 }
+
+    /* ============================================================
+        WILD MOVE (teleport)
+        Wild can move to any destination. We attempt server sync with
+        ticket 'wild', and if server rejects/unavailable we still apply
+        locally for testing flow.
+       ============================================================ */
+    function executeWildMove(newPosition, ticketType = 'wild') {
+        const parsedDestination = parseInt(newPosition, 10);
+        const serverTicket = ticketType;
+
+        selectedTicketType = null;
+        document.querySelectorAll('.ticket-button').forEach(btn => btn.classList.remove('selected'));
+
+        function applyLocally() {
+            ticketCounts[ticketType]--;
+            updateTicketDisplay();
+            currentPosition = parseInt(newPosition);
+            updatePlayerPiecePosition();
+            highlightCurrentLocation();
+            document.getElementById('currentPosition').textContent = currentPosition;
+            setTurnRole(myRole === 'fugitive' ? 'detective' : 'fugitive', 'local-move');
+
+            if (myRole === 'fugitive') {
+                persistMrXStartLocation(currentPosition, 'wild-move');
+                persistMrXLastKnown(currentPosition);
+            }
+
+            if (gameChannel) {
+                gameChannel.postMessage({
+                    type: 'playerMoved',
+                    fromPlayerId: parseInt(playerId),
+                    isMrX: myRole === 'fugitive',
+                    destination: parsedDestination,
+                    ticket: ticketType
+                });
+            }
+
+            loadPlayersFromServer();
+            refreshMovementLog();
+        }
+
+        // Try server sync with the route's actual color ticket.
+        // If the server rejects (turn/occupancy/etc), apply locally anyway.
+        fetch(`${API_BASE}/players/${playerId}/moves`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                gameID: parseInt(gameId),
+                ticket: serverTicket,
+                destination: parsedDestination
+            })
+        })
+        .then(response => response.json().then(body => ({ ok: response.ok, body })))
+        .then(({ ok, body }) => {
+            if (ok) {
+                console.log(`[Move] Server accepted move with ${serverTicket}:`, body);
+            } else {
+                console.warn('[Move] Server rejected, applying locally:', body.message);
+            }
+            applyLocally();
+        })
+        .catch(err => {
+            console.warn('[Move] Server unreachable, applying locally:', err.message);
+            applyLocally();
+        });
+
+        console.log(`[Move] Moving to ${parsedDestination} using ${ticketType}`);
+    }
 
 /* ============================================================
     EXECUTE MOVE FUNCTION
@@ -675,13 +907,47 @@ function executeMove(newPosition) {
         console.log('Move confirmed:', data);
         ticketCounts[usedTicket]--;
         updateTicketDisplay();
+
+        // Use the server-confirmed location; fall back to requested destination
+        // if the API response doesn't include it.
+        const confirmedLocation = (data.location != null)
+            ? parseInt(data.location, 10)
+            : parseInt(newPosition, 10);
+
+        currentPosition = confirmedLocation;
+        updatePlayerPiecePosition();
+        highlightCurrentLocation();
+        document.getElementById('currentPosition').textContent = confirmedLocation;
+
+        if (myRole === 'fugitive') {
+            persistMrXStartLocation(confirmedLocation, 'confirmed-move');
+            persistMrXLastKnown(confirmedLocation);
+        }
+
         loadPlayersFromServer(); // refresh all positions from server
         refreshMovementLog();
+
+        // Notify all other open tabs/windows immediately so they don't
+        // have to wait for their next 3-second poll.
+        // isMrX lets receiving tabs know they should store this as the
+        // last-known Mr. X location (since the server returns "hidden").
+        if (gameChannel) {
+            gameChannel.postMessage({
+                type: 'playerMoved',
+                fromPlayerId: parseInt(playerId),
+                isMrX: myRole === 'fugitive',
+                destination: confirmedLocation,
+                ticket: usedTicket
+            });
+        }
     })
     .catch(error => {
         console.error('Move failed:', error);
-        // The error message now comes through properly
-        showError(error.message.replace('Server error: 400 - ', ''));
+        const cleanedMessage = error.message
+            .replace('Server error: 400 - ', '')
+            .replace('Server error: 403 - ', '')
+            .replace('Server error: 404 - ', '');
+        showError(cleanedMessage || 'Move failed.');
         selectedTicketType = usedTicket; // restore ticket
     });
 
@@ -707,6 +973,7 @@ function updateTicketDisplay() {
     document.querySelector('#greenTicket .ticket-count').textContent = ticketCounts.green;
     document.querySelector('#yellowTicket .ticket-count').textContent = ticketCounts.yellow;
     document.querySelector('#blackTicket .ticket-count').textContent = ticketCounts.black;
+        document.querySelector('#wildTicket .ticket-count').textContent = ticketCounts.wild;
 }
 
 /* ============================================================
@@ -738,6 +1005,12 @@ window.onclick = function(event) {
     - Displays starting position
     ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
+    updateMrXDebug({
+        currentPosition,
+        playerId: playerId || null,
+        gameId: gameId || null,
+        apiBase: API_BASE
+    });
     loadMapData().then(() => {
     initializeMapLocations();
     loadMyPlayerData();
@@ -784,7 +1057,14 @@ function loadPlayersFromServer() {
         return response.json();
     })
     .then(data => {
-        currentGameState = data.state.toLowerCase(); // ← add this line
+        const previousGameState = currentGameState;
+        currentGameState = (data.state || '').toLowerCase();
+
+        // Prefer server turn role when it is explicit; otherwise keep local fallback.
+        const serverTurnRole = normalizeTurnRole(currentGameState);
+        if (serverTurnRole) {
+            setTurnRole(serverTurnRole, 'server-game-state');
+        }
         
         const players = data.players.map(player => ({
             id: player.playerId,
@@ -796,13 +1076,27 @@ function loadPlayersFromServer() {
         loadMyPosition(players);
         updateOtherPlayersOnMap(players);
 
+        // Broadcast the turn change so all other tabs flip their turn indicator immediately
+        if (gameChannel && currentGameState !== previousGameState) {
+            gameChannel.postMessage({ type: 'turnChanged', state: getEffectiveTurnRole() || currentGameState });
+        }
+
         resolveMrXPlayerId(data.players)
             .then(() => {
                 const mrXOnBoard = players.find(p => p.id === mrXPlayerId);
                 const visibleMrXLocation = toLocationNumber(mrXOnBoard?.location);
+
                 if (visibleMrXLocation !== null) {
+                    // Server gave us a real location — save it so detectives
+                    // can use it as the fallback even after it goes hidden.
                     persistMrXStartLocation(visibleMrXLocation, 'game-state');
+                    persistMrXLastKnown(visibleMrXLocation);
                 }
+
+                // Re-render now that mrXPlayerId is resolved so the
+                // "hidden → last-known" branch in updateOtherPlayersOnMap
+                // can actually find Mr. X's entry and place the marker.
+                updateOtherPlayersOnMap(players);
                 refreshMovementLog();
             })
             .catch(err => console.warn('Could not resolve Mr. X player ID:', err));
@@ -813,13 +1107,28 @@ function updateOtherPlayersOnMap(players) {
     // Remove all existing other-player pieces first
     document.querySelectorAll('.other-player-piece').forEach(piece => piece.remove());
 
+    let mrXRendered = false;
+
     players.forEach(player => {
         // Skip the current player (they have their own piece)
         if (player.id === parseInt(playerId)) return;
 
         // Find location data for this player's position
         const loc = mapData.locations.find(l => l.location === parseInt(player.location));
-        if (!loc) return; // skip if location is "Hidden" or invalid
+
+        if (!loc) {
+            // Location is "Hidden" or invalid — this is expected for Mr. X.
+            // Fall back to the last-known location received via BroadcastChannel
+            // or localStorage so we can still show them on the board.
+            if (player.id === mrXPlayerId) {
+                const lastKnown = getMrXLastKnown();
+                if (lastKnown !== null) {
+                    placeMrXLastKnownMarker(lastKnown);
+                    mrXRendered = true;
+                }
+            }
+            return;
+        }
 
         // Create a piece for this player
         const piece = document.createElement('div');
@@ -831,15 +1140,31 @@ function updateOtherPlayersOnMap(players) {
         piece.textContent = player.name.charAt(0); // first letter of name
 
         document.getElementById('locationMarkers').appendChild(piece);
+
+        if (player.id === mrXPlayerId) mrXRendered = true;
     });
+
+    // If Mr. X is not in the players list at all yet, still show last known
+    if (!mrXRendered && mrXPlayerId) {
+        const lastKnown = getMrXLastKnown();
+        if (lastKnown !== null) {
+            placeMrXLastKnownMarker(lastKnown);
+        }
+    }
 }
 
 function loadMyPosition(players) {
     const me = players.find(p => p.id === parseInt(playerId));
     const myVisibleLocation = toLocationNumber(me?.location);
 
+    updateMrXDebug({
+        serverLocationRaw: me?.location ?? mrXDebugState.serverLocationRaw,
+        serverLocationParsed: myVisibleLocation
+    });
+
     if (myVisibleLocation !== null) {
         currentPosition = myVisibleLocation;
+        updateMrXDebug({ currentPosition });
         updatePlayerPiecePosition();
         highlightCurrentLocation();
         document.getElementById('currentPosition').textContent = currentPosition;
@@ -848,11 +1173,33 @@ function loadMyPosition(players) {
 
         if (myRole === 'fugitive') {
             persistMrXStartLocation(currentPosition, 'my-position');
+            // Keep last-known in sync whenever the server confirms Mr. X's position.
+            persistMrXLastKnown(currentPosition);
         }
         return;
     }
 
     applyMrXFallbackIfNeeded();
+
+    // If Mr. X is the fugitive and their location is hidden on the server,
+    // use their stored last-known real location so their piece shows correctly.
+    if (myVisibleLocation === null && myRole === 'fugitive') {
+        const lastKnown = getMrXLastKnown();
+        if (lastKnown !== null) {
+            currentPosition = lastKnown;
+            updateMrXDebug({ currentPosition });
+            updatePlayerPiecePosition();
+            highlightCurrentLocation();
+            document.getElementById('currentPosition').textContent = currentPosition;
+            mrXFallbackApplied = true;
+            return;
+        }
+    }
+
+    if (myVisibleLocation === null && myRole === 'fugitive') {
+        showError('Waiting for canonical Mr. X start location from server...');
+        return;
+    }
 
     if (myVisibleLocation === null && !mrXFallbackApplied && !randomFallbackApplied) {
         applyRandomFallbackStart(players);
@@ -871,12 +1218,77 @@ function loadMyPlayerData() {
         ticketCounts.black = data.black;
         updateTicketDisplay();
 
-        // Store role so we can show/hide controls
-        myRole = data.role;
+        // Store normalized role so fugitive/detective checks are reliable
+        // even when backend returns capitalized values like "Fugitive".
+        myRole = normalizeTurnRole(data.role) || (typeof data.role === 'string' ? data.role.toLowerCase() : data.role);
+        updateMrXDebug({
+            role: myRole,
+            serverLocationRaw: data.location,
+            serverLocationParsed: toLocationNumber(data.location)
+        });
 
         if (myRole === 'fugitive') {
             mrXPlayerId = parseInt(playerId, 10);
-            persistMrXStartLocation(data.startLocation || data.location, 'player-data');
+            const startLoc = data.startLocation || data.location;
+            persistMrXStartLocation(startLoc, 'player-data');
+
+            // Some backends return Mr. X location as "Hidden" in /players.
+            // Pull canonical startLocation from /players/:id/moves so client
+            // movement uses the real origin node instead of random fallback.
+            fetch(`${API_BASE}/players/${playerId}/moves`)
+                .then(res => res.ok ? res.json() : null)
+                .then(movesData => {
+                    updateMrXDebug({
+                        movesStartRaw: movesData?.startLocation ?? null,
+                        movesFetchStatus: movesData ? 'ok' : 'non-200-or-empty'
+                    });
+                    const canonicalStart = toLocationNumber(movesData?.startLocation);
+                    updateMrXDebug({ canonicalStart });
+                    if (canonicalStart !== null) {
+                        persistMrXStartLocation(canonicalStart, 'moves-start');
+                        persistMrXLastKnown(canonicalStart);
+
+                        const hiddenFromPlayerEndpoint = toLocationNumber(data.location) === null;
+                        if (hiddenFromPlayerEndpoint) {
+                            currentPosition = canonicalStart;
+                            updateMrXDebug({ currentPosition });
+                            updatePlayerPiecePosition();
+                            highlightCurrentLocation();
+                            document.getElementById('currentPosition').textContent = currentPosition;
+                        }
+
+                        if (gameChannel) {
+                            gameChannel.postMessage({
+                                type: 'playerMoved',
+                                fromPlayerId: parseInt(playerId),
+                                isMrX: true,
+                                destination: canonicalStart,
+                                ticket: null
+                            });
+                        }
+                    }
+                })
+                .catch(err => {
+                    updateMrXDebug({ movesFetchStatus: `error: ${err?.message || err}` });
+                    console.warn('Failed to load canonical Mr. X start:', err);
+                });
+
+            // Save and broadcast Mr. X's starting location immediately so
+            // any already-open detective tabs can display the marker
+            // without waiting for Mr. X to make their first move.
+            const startLocNum = toLocationNumber(startLoc);
+            if (startLocNum !== null) {
+                persistMrXLastKnown(startLocNum);
+                if (gameChannel) {
+                    gameChannel.postMessage({
+                        type: 'playerMoved',
+                        fromPlayerId: parseInt(playerId),
+                        isMrX: true,
+                        destination: startLocNum,
+                        ticket: null
+                    });
+                }
+            }
         }
 
         // Update name display
