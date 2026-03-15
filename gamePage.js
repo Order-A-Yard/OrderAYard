@@ -21,7 +21,7 @@ const gameChannel = gameId ? new BroadcastChannel(`oay_game_${gameId}`) : null;
 
 if (gameChannel) {
     gameChannel.onmessage = (event) => {
-        const { type, isMrX, destination, state } = event.data;
+        const { type, isMrX, destination, state, message } = event.data;
 
         if (type === 'playerMoved') {
             // Local fallback for stale server turn state.
@@ -45,6 +45,10 @@ if (gameChannel) {
             loadPlayersFromServer();
             refreshMovementLog();
         }
+
+        if (type === 'gameEnded') {
+            endGame(message || 'Game over.', false);
+        }
     };
 }
 
@@ -55,6 +59,8 @@ let mrXPlayerId = null;
 let resolveMrXPromise = null;
 let mrXFallbackApplied = false;
 let randomFallbackApplied = false;
+let gameHasEnded = false;
+let gameEndMessage = '';
 let mrXDebugState = {
     playerId: null,
     gameId: null,
@@ -115,6 +121,73 @@ function setTurnRole(role, source = 'unknown') {
 
 function getEffectiveTurnRole() {
     return normalizeTurnRole(turnRoleOverride) || normalizeTurnRole(currentGameState);
+}
+
+function endGame(message, shouldBroadcast = true) {
+    if (gameHasEnded) return;
+
+    gameHasEnded = true;
+    gameEndMessage = message || 'Game over.';
+    currentGameState = 'over';
+
+    showError(gameEndMessage);
+    window.alert(gameEndMessage);
+
+    const playerPiece = document.getElementById('playerPiece');
+    if (playerPiece) {
+        playerPiece.setAttribute('draggable', 'false');
+        playerPiece.style.opacity = '0.5';
+        playerPiece.style.cursor = 'not-allowed';
+    }
+
+    document.querySelectorAll('.ticket-button').forEach(btn => {
+        btn.classList.remove('selected');
+        btn.disabled = true;
+    });
+
+    selectedTicketType = null;
+
+    if (shouldBroadcast && gameChannel) {
+        gameChannel.postMessage({
+            type: 'gameEnded',
+            message: gameEndMessage
+        });
+    }
+}
+
+function checkCaptureWin(serverPlayers = []) {
+    if (!Array.isArray(serverPlayers) || serverPlayers.length === 0) return false;
+
+    const fugitive = serverPlayers.find(p => normalizeTurnRole(p.role || p.playerRole) === 'fugitive');
+    if (!fugitive) return false;
+
+    const fugitiveLocation = toLocationNumber(fugitive.location) ?? getMrXLastKnown();
+    if (fugitiveLocation === null) return false;
+
+    const catcher = serverPlayers.find(p =>
+        parseInt(p.playerId, 10) !== parseInt(fugitive.playerId, 10) &&
+        toLocationNumber(p.location) === fugitiveLocation
+    );
+
+    if (!catcher) return false;
+
+    const catcherName = catcher.playerName || `Player ${catcher.playerId}`;
+    endGame(`${catcherName} landed on Mr. X at location ${fugitiveLocation}. Game over.`);
+    return true;
+}
+
+function checkImmediateDetectiveCapture(targetLocation) {
+    if (myRole !== 'detective') return false;
+
+    const detectiveLocation = toLocationNumber(targetLocation);
+    const mrXLocation = getMrXLastKnown();
+
+    if (detectiveLocation === null || mrXLocation === null) return false;
+    if (detectiveLocation !== mrXLocation) return false;
+
+    const name = document.getElementById('playerName')?.textContent || 'A player';
+    endGame(`${name} landed on Mr. X at location ${mrXLocation}. Game over.`);
+    return true;
 }
         /* ============================================================
            MAP DATA
@@ -759,6 +832,11 @@ function handleLocationClick(targetLocation) {
     and ticket availability. Shows error if invalid.
     ============================================================ */
 function attemptMove(targetLocation) {
+    if (gameHasEnded) {
+        showError(gameEndMessage || 'Game is over.');
+        return;
+    }
+
     // Turn ownership is enforced by the server (player.turn) so
     // client role state cannot incorrectly block valid moves.
     const connection = getValidConnection(currentPosition, targetLocation);
@@ -820,6 +898,9 @@ function attemptMove(targetLocation) {
             updatePlayerPiecePosition();
             highlightCurrentLocation();
             document.getElementById('currentPosition').textContent = currentPosition;
+
+            if (checkImmediateDetectiveCapture(currentPosition)) return;
+
             setTurnRole(myRole === 'fugitive' ? 'detective' : 'fugitive', 'local-move');
 
             if (myRole === 'fugitive') {
@@ -918,6 +999,8 @@ function executeMove(newPosition) {
         updatePlayerPiecePosition();
         highlightCurrentLocation();
         document.getElementById('currentPosition').textContent = confirmedLocation;
+
+        if (checkImmediateDetectiveCapture(confirmedLocation)) return;
 
         if (myRole === 'fugitive') {
             persistMrXStartLocation(confirmedLocation, 'confirmed-move');
@@ -1051,12 +1134,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadPlayersFromServer() {
+    if (gameHasEnded) return;
+
     fetch(`${API_BASE}/games/${gameId}`)
     .then(response => {
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
         return response.json();
     })
     .then(data => {
+        if (gameHasEnded) return;
+
         const previousGameState = currentGameState;
         currentGameState = (data.state || '').toLowerCase();
 
@@ -1072,6 +1159,8 @@ function loadPlayersFromServer() {
             colour: player.colour,
             location: player.location
         }));
+
+        if (checkCaptureWin(data.players)) return;
 
         loadMyPosition(players);
         updateOtherPlayersOnMap(players);
