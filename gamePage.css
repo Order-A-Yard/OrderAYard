@@ -26,13 +26,16 @@
            ======================================== */
         .player-piece {
             position: absolute;
-            width: 36px;
-            height: 36px;
+            width: 22px;
+            height: 22px;
             pointer-events: auto; /* re-enable inside pointer-events:none .map-inner */
-            font-size: 24px;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            background: rgba(0, 0, 0, 0.22);
             cursor: grab;           /* Shows grab cursor on hover */
             z-index: 100;           /* Keeps piece above location markers */
             transition: left 0.3s ease, top 0.3s ease; /* Smooth movement animation */
@@ -42,13 +45,17 @@
 
         .other-player-piece {
             position: absolute;
-            width: 36px;
-            height: 36px;
+            width: 22px;
+            height: 22px;
             pointer-events: auto; /* re-enable inside pointer-events:none .map-inner */
-            font-size: 24px;
+            font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            line-height: 1;
+            font-weight: 700;
             cursor: grab;           /* Shows grab cursor on hover */
             z-index: 100;           /* Keeps piece above location markers */
             transition: left 0.3s ease, top 0.3s ease; /* Smooth movement animation */
