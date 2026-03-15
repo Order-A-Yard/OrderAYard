@@ -105,7 +105,19 @@
             <span class="map-modal-close" onclick="closeMapModal()">&times;</span>
             <img src="OrderAYardFinalMap.png" alt="Full Map" class="map-modal-image">
         </div>
-    </div> 
+    </div>
+
+    <div id="gameOverOverlay" class="game-over-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+        <div class="game-over-card">
+            <div class="game-over-badge">Final Result</div>
+            <h2 id="gameOverTitle">Game Over</h2>
+            <p id="gameOverMessage">A player landed on Mr. X.</p>
+            <div class="game-over-actions">
+                <button class="game-over-btn primary" onclick="location.reload()">Play Again</button>
+                <button class="game-over-btn" onclick="window.location.href='lobbyPage.html'">Back to Lobby</button>
+            </div>
+        </div>
+    </div>
 
     
 </body>

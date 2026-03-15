@@ -131,7 +131,22 @@ function endGame(message, shouldBroadcast = true) {
     currentGameState = 'over';
 
     showError(gameEndMessage);
-    window.alert(gameEndMessage);
+
+    const overlay = document.getElementById('gameOverOverlay');
+    const title = document.getElementById('gameOverTitle');
+    const description = document.getElementById('gameOverMessage');
+
+    if (title) {
+        title.textContent = 'Game Over';
+    }
+
+    if (description) {
+        description.textContent = gameEndMessage;
+    }
+
+    if (overlay) {
+        overlay.classList.remove('hidden');
+    }
 
     const playerPiece = document.getElementById('playerPiece');
     if (playerPiece) {
@@ -158,20 +173,27 @@ function endGame(message, shouldBroadcast = true) {
 function checkCaptureWin(serverPlayers = []) {
     if (!Array.isArray(serverPlayers) || serverPlayers.length === 0) return false;
 
-    const fugitive = serverPlayers.find(p => normalizeTurnRole(p.role || p.playerRole) === 'fugitive');
+    const getPlayerId = (p) => parseInt(p.playerId ?? p.id, 10);
+    const getPlayerName = (p) => p.playerName || p.name || `Player ${getPlayerId(p)}`;
+
+    const fugitive = serverPlayers.find(p =>
+        normalizeTurnRole(p.role || p.playerRole) === 'fugitive' ||
+        (mrXPlayerId && getPlayerId(p) === parseInt(mrXPlayerId, 10))
+    );
+
     if (!fugitive) return false;
 
     const fugitiveLocation = toLocationNumber(fugitive.location) ?? getMrXLastKnown();
     if (fugitiveLocation === null) return false;
 
     const catcher = serverPlayers.find(p =>
-        parseInt(p.playerId, 10) !== parseInt(fugitive.playerId, 10) &&
+        getPlayerId(p) !== getPlayerId(fugitive) &&
         toLocationNumber(p.location) === fugitiveLocation
     );
 
     if (!catcher) return false;
 
-    const catcherName = catcher.playerName || `Player ${catcher.playerId}`;
+    const catcherName = getPlayerName(catcher);
     endGame(`${catcherName} landed on Mr. X at location ${fugitiveLocation}. Game over.`);
     return true;
 }
@@ -1160,8 +1182,6 @@ function loadPlayersFromServer() {
             location: player.location
         }));
 
-        if (checkCaptureWin(data.players)) return;
-
         loadMyPosition(players);
         updateOtherPlayersOnMap(players);
 
@@ -1181,6 +1201,9 @@ function loadPlayersFromServer() {
                     persistMrXStartLocation(visibleMrXLocation, 'game-state');
                     persistMrXLastKnown(visibleMrXLocation);
                 }
+
+                // Run capture check only after Mr. X identity/location fallback is resolved.
+                if (checkCaptureWin(data.players)) return;
 
                 // Re-render now that mrXPlayerId is resolved so the
                 // "hidden → last-known" branch in updateOtherPlayersOnMap

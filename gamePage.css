@@ -201,4 +201,101 @@
             90% { opacity: 1; transform: translateX(-50%) translateY(0); }
             100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
         }
+
+        .game-over-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(circle at 20% 20%, rgba(120, 18, 18, 0.45), rgba(10, 10, 16, 0.85));
+            backdrop-filter: blur(6px);
+            padding: 20px;
+        }
+
+        .game-over-overlay.hidden {
+            display: none;
+        }
+
+        .game-over-card {
+            width: min(92vw, 560px);
+            border-radius: 18px;
+            padding: 24px;
+            background: linear-gradient(165deg, rgba(22, 26, 34, 0.97), rgba(14, 16, 22, 0.97));
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+            color: #f8f9fb;
+            animation: gameOverIn 260ms ease-out;
+            text-align: center;
+        }
+
+        .game-over-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(231, 76, 60, 0.18);
+            color: #ffb2a8;
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            font-size: 12px;
+            letter-spacing: 0.4px;
+            margin-bottom: 12px;
+        }
+
+        .game-over-card h2 {
+            margin: 0 0 10px 0;
+            font-size: clamp(28px, 5vw, 40px);
+            line-height: 1.1;
+        }
+
+        .game-over-card p {
+            margin: 0;
+            color: #d2d8e2;
+            font-size: 16px;
+            line-height: 1.45;
+        }
+
+        .game-over-actions {
+            margin-top: 22px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-over-btn {
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.08);
+            color: #f4f6fa;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s ease, background-color 0.2s ease;
+        }
+
+        .game-over-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .game-over-btn.primary {
+            background: #e74c3c;
+            border-color: #e74c3c;
+            color: #fff;
+        }
+
+        .game-over-btn.primary:hover {
+            background: #c0392b;
+        }
+
+        @keyframes gameOverIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
  
