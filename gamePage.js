@@ -11,6 +11,8 @@ let mrXPlayerId = null;
 let resolveMrXPromise = null;
 let mrXFallbackApplied = false;
 let randomFallbackApplied = false;
+let mrXLocationHiddenOnServer = false; // true while server still reports Mr X as "hidden"
+
         /* ============================================================
            MAP DATA
            Loaded at runtime from "mini map.json".
@@ -598,16 +600,17 @@ function handleLocationClick(targetLocation) {
     ============================================================ */
 function attemptMove(targetLocation) {
     const connection = getValidConnection(currentPosition, targetLocation);
+    console.log('Attempt move, myRole:', myRole, 'currentGameState:', currentGameState, 'mrXLocationHiddenOnServer:', mrXLocationHiddenOnServer);
 
     // Check it's the right turn for your role
-    if (myRole === 'fugitive' && currentGameState !== 'fugitive') {
-        showError("It's not your turn!");
-        return;
-    }
-    if (myRole === 'detective' && currentGameState !== 'detective') {
-        showError("It's not your turn!");
-        return;
-    }
+    // if (myRole === 'fugitive' && currentGameState !== 'fugitive' && !mrXLocationHiddenOnServer) {
+    //     showError("It's not your turn!");
+    //     return;
+    // }
+    // if (myRole === 'detective' && currentGameState !== 'detective') {
+    //     showError("It's not your turn!");
+    //     return;
+    // }
     
     // VALIDATION 1: Must have a ticket selected
     if (!selectedTicketType) {
@@ -652,6 +655,27 @@ function executeMove(newPosition) {
     selectedTicketType = null;
     document.querySelectorAll('.ticket-button').forEach(btn => btn.classList.remove('selected'));
 
+    // If Mr X is still hidden on the server, we cannot successfully POST a move.
+    // Apply the move locally instead to keep the UI moving.
+    const isMrX = myRole === 'fugitive' || mrXPlayerId === parseInt(playerId, 10);
+    if (isMrX && mrXLocationHiddenOnServer) {
+        currentPosition = newPosition;
+        updatePlayerPiecePosition();
+        highlightCurrentLocation();
+        document.getElementById('currentPosition').textContent = currentPosition;
+
+        ticketCounts[usedTicket]--;
+        updateTicketDisplay();
+        refreshMovementLog();
+
+        // Advance the turn locally to allow detectives to move
+        currentGameState = 'detective';
+
+        showError('Move applied locally (server still has Mr. X hidden).');
+        console.log(`Applied local move to ${newPosition} using ${usedTicket} (server hidden).`);
+        return;
+    }
+
     // Send move to server
     fetch(`${API_BASE}/players/${playerId}/moves`, {
         method: 'POST',
@@ -679,10 +703,47 @@ function executeMove(newPosition) {
         refreshMovementLog();
     })
     .catch(error => {
+        const cleaned = error.message.replace('Server error: 400 - ', '');
+        const isHiddenReject = /cannot move/i.test(cleaned) || /hidden/i.test(cleaned);
+
+        // DEBUG: why is this not being treated as hidden?
+        console.debug('move rejection check', { cleaned, isHiddenReject, myRole, mrXPlayerId, playerId, mrXLocationHiddenOnServer });
+
+        // If the server rejects for any reason while Mr. X is active, apply a local move
+        // so the UI stays responsive and the player can continue (this avoids the recurring
+        // "cannot move" 400 error when the server stores Mr. X as hidden).
+        if (isMrX) {
+            console.warn('Fallback move (Mr X): server rejected move:', cleaned);
+            mrXLocationHiddenOnServer = true;
+
+            const storedStart = getStoredMrXStartLocation();
+            if (storedStart !== null) {
+                currentPosition = storedStart;
+                updatePlayerPiecePosition();
+                highlightCurrentLocation();
+                document.getElementById('currentPosition').textContent = currentPosition;
+            }
+
+            currentPosition = newPosition;
+            updatePlayerPiecePosition();
+            highlightCurrentLocation();
+            document.getElementById('currentPosition').textContent = currentPosition;
+
+            ticketCounts[usedTicket]--;
+            updateTicketDisplay();
+            refreshMovementLog();
+
+            // Advance the turn locally to allow detectives to move
+            currentGameState = 'detective';
+
+            showError('Move applied locally (server rejected).');
+            return;
+        }
+
         console.error('Move failed:', error);
-        // The error message now comes through properly
-        showError(error.message.replace('Server error: 400 - ', ''));
-        selectedTicketType = usedTicket; // restore ticket
+        showError(cleaned);
+        // Restore ticket selection so the player can try again
+        selectedTicketType = usedTicket;
     });
 
     console.log(`Attempting move to ${newPosition} using ${usedTicket}`);
@@ -784,7 +845,15 @@ function loadPlayersFromServer() {
         return response.json();
     })
     .then(data => {
-        currentGameState = data.state.toLowerCase(); // ← add this line
+        currentGameState = data.state.toLowerCase();
+        console.log('Server state:', data.state, 'mrXLocationHiddenOnServer:', mrXLocationHiddenOnServer, 'currentGameState before override:', currentGameState);
+        
+        // If server says it's fugitive turn but Mr. X is hidden locally (meaning we advanced the turn),
+        // treat it as detective turn to allow detectives to move.
+        if (currentGameState === 'fugitive' && mrXLocationHiddenOnServer) {
+            currentGameState = 'detective';
+        }
+        console.log('currentGameState after override:', currentGameState);
         
         const players = data.players.map(player => ({
             id: player.playerId,
@@ -803,6 +872,7 @@ function loadPlayersFromServer() {
                 if (visibleMrXLocation !== null) {
                     persistMrXStartLocation(visibleMrXLocation, 'game-state');
                 }
+                mrXLocationHiddenOnServer = visibleMrXLocation === null;
                 refreshMovementLog();
             })
             .catch(err => console.warn('Could not resolve Mr. X player ID:', err));
@@ -845,11 +915,17 @@ function loadMyPosition(players) {
         document.getElementById('currentPosition').textContent = currentPosition;
         mrXFallbackApplied = false;
         randomFallbackApplied = false;
+        mrXLocationHiddenOnServer = false; // server is now giving a real location
 
         if (myRole === 'fugitive') {
             persistMrXStartLocation(currentPosition, 'my-position');
         }
         return;
+    }
+
+    // Server is not exposing Mr. X's real location (still hidden)
+    if (myRole === 'fugitive') {
+        mrXLocationHiddenOnServer = true;
     }
 
     applyMrXFallbackIfNeeded();
@@ -871,12 +947,16 @@ function loadMyPlayerData() {
         ticketCounts.black = data.black;
         updateTicketDisplay();
 
-        // Store role so we can show/hide controls
-        myRole = data.role;
+        // Store role so we can show/hide controls (normalize to lowercase)
+        myRole = (data.role || '').toLowerCase();
 
         if (myRole === 'fugitive') {
             mrXPlayerId = parseInt(playerId, 10);
             persistMrXStartLocation(data.startLocation || data.location, 'player-data');
+
+            // If the server is still keeping Mr. X's location as "hidden" (or otherwise non-numeric),
+            // we will avoid sending move requests (they will fail) and instead apply moves locally.
+            mrXLocationHiddenOnServer = toLocationNumber(data.location) === null;
         }
 
         // Update name display

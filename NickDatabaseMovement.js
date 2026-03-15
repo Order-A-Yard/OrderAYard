@@ -64,12 +64,18 @@ app.post("/players/:playerId/moves", async (req, res) => {
                             location: player.location 
                         }); 
                     } 
+
+            // Workaround: if Mr. X is stored as "hidden" in the DB, treat their current location as their start location
+            // so they can still make a move without requiring an immediate reveal.
+            const storedLocation = Number(player.location);
+            const effectiveLocation = Number.isFinite(storedLocation) ? storedLocation : player.start_location;
+
             // Validate map connection 
                 const connRes = await db.query( 
                     `SELECT * FROM map_edges
                      WHERE (locationA = $1 AND locationB = $2 AND ticket = $3) 
                      OR (locationA = $2 AND locationB = $1 AND ticket = $3)`, 
-                     [player.location, destination, ticket] 
+                     [effectiveLocation, destination, ticket] 
                     ); 
                     
                     if (connRes.rowCount === 0) 
