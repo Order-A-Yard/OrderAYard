@@ -456,7 +456,6 @@ function applyMrXFallbackIfNeeded() {
     highlightCurrentLocation();
     document.getElementById('currentPosition').textContent = currentPosition;
     mrXFallbackApplied = true;
-    showError('Using saved Mr. X start location while waiting for server position.');
 }
 
 async function resolveMrXPlayerId(serverPlayers = []) {
@@ -951,11 +950,17 @@ function makeMove() {
 
 // Refresh ticket counts shown on the ticket buttons.
 function updateTicketDisplay() {
-    document.querySelector('#redTicket .ticket-count').textContent = ticketCounts.red;
-    document.querySelector('#greenTicket .ticket-count').textContent = ticketCounts.green;
-    document.querySelector('#yellowTicket .ticket-count').textContent = ticketCounts.yellow;
-    document.querySelector('#blackTicket .ticket-count').textContent = ticketCounts.black;
-        document.querySelector('#wildTicket .ticket-count').textContent = ticketCounts.wild;
+    const redCount = document.querySelector('#redTicket .ticket-count');
+    const greenCount = document.querySelector('#greenTicket .ticket-count');
+    const yellowCount = document.querySelector('#yellowTicket .ticket-count');
+    const blackCount = document.querySelector('#blackTicket .ticket-count');
+    const wildCount = document.querySelector('#wildTicket .ticket-count');
+
+    if (redCount) redCount.textContent = ticketCounts.red;
+    if (greenCount) greenCount.textContent = ticketCounts.green;
+    if (yellowCount) yellowCount.textContent = ticketCounts.yellow;
+    if (blackCount) blackCount.textContent = ticketCounts.black;
+    if (wildCount) wildCount.textContent = ticketCounts.wild;
 }
 
 // Open and close the larger map modal.
@@ -1175,13 +1180,13 @@ function loadMyPosition(players) {
     }
 
     if (myVisibleLocation === null && myRole === 'fugitive') {
-        showError('Waiting for canonical Mr. X start location from server...');
+        console.info('Waiting for canonical Mr. X start location from server.');
         return;
     }
 
     if (myVisibleLocation === null && !mrXFallbackApplied && !randomFallbackApplied) {
         applyRandomFallbackStart(players);
-        showError('Using randomized start location while waiting for server assignment.');
+        console.info('Using randomized start location while waiting for server assignment.');
     }
 }
 
