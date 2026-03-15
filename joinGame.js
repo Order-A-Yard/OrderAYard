@@ -13,11 +13,6 @@ document.getElementById("bottom-button").addEventListener("click", function(){
         return;
     }
     
-    if (!selectedColor) {
-        alert('Please select a color!');
-        return;
-    }
-
     if (!gameCode) {
         alert('Please enter a game code!');
         return;
@@ -32,8 +27,7 @@ document.getElementById("bottom-button").addEventListener("click", function(){
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            playerName: playerName,
-            color: selectedColor
+            playerName: playerName
         })   
     })
     .then(response => {
@@ -45,7 +39,7 @@ document.getElementById("bottom-button").addEventListener("click", function(){
         // Store player info in localStorage (matching hostGame.js format)
         localStorage.setItem('playerId', data.playerId);
         localStorage.setItem('playerName', playerName);
-        localStorage.setItem('playerColor', selectedColor);
+        localStorage.removeItem('playerColor');
         localStorage.setItem('gameId', gameCode);
         localStorage.setItem('isHost', 'false');  // This player is not the host
         window.location.href = `/lobbyPage.html?playerId=${data.playerId}&gameId=${gameCode}`;

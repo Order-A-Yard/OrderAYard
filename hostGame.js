@@ -1,45 +1,5 @@
 const API_BASE = localStorage.getItem('apiBase') || 'http://trinity-developments.co.uk';
 
-let selectedColor = null;
-
-function toggleColorWheel() {
-    const colorWheel = document.getElementById('colorWheel');
-    colorWheel.classList.toggle('active');
-}
-
-function selectColor(colorCode, colorName, element) {
-    selectedColor = colorCode;
-    
-    // Update display
-    const display = document.getElementById('selectedColorDisplay');
-    display.textContent = `Selected: ${colorName}`;
-    display.style.backgroundColor = colorCode;
-    display.style.color = getContrastColor(colorCode);
-    
-    // Update selected state
-    document.querySelectorAll('.color-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-    element.classList.add('selected');
-    
-    // Close color wheel
-    setTimeout(() => {
-        document.getElementById('colorWheel').classList.remove('active');
-    }, 300); 
-}
-
-function getContrastColor(hexColor) {
-    // Convert hex to RGB
-    const r = parseInt(hexColor.substr(1, 2), 16);
-    const g = parseInt(hexColor.substr(3, 2), 16);
-    const b = parseInt(hexColor.substr(5, 2), 16);
-    
-    // Calculate luminance
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    
-    return luminance > 0.5 ? '#000000' : '#FFFFFF';
-}
-
 async function startGame() {
     const playerName = document.getElementById('playerName').value.trim();
     
@@ -48,11 +8,6 @@ async function startGame() {
         return;
     }
     
-    if (!selectedColor) {
-        alert('Please select a color!');
-        return;
-    }
-
     // Disable button to prevent double-click
     const startButton = document.getElementById('startButton');
     startButton.disabled = true;
@@ -89,8 +44,7 @@ async function startGame() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                playerName: playerName,
-                color: selectedColor
+                playerName: playerName
             })
         });
 
@@ -105,7 +59,7 @@ async function startGame() {
         // Store player info in localStorage
         localStorage.setItem('playerId', playerData.playerId);
         localStorage.setItem('playerName', playerName);
-        localStorage.setItem('playerColor', selectedColor);
+        localStorage.removeItem('playerColor');
         localStorage.setItem('isHost', 'true');
 
         // Redirect to lobby
