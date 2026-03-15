@@ -1,6 +1,16 @@
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId') || localStorage.getItem('gameId');
 const playerId = urlParams.get('playerId') || localStorage.getItem('playerId');
+const API_BASE = 'http://trinity-developments.co.uk';
+const isHost = localStorage.getItem('isHost') === 'true';
+const mrXStartStorageKey = gameId ? `mrXStartLocation:${gameId}` : 'mrXStartLocation';
+
+let currentGameState = 'open';
+let myRole = null; // 'fugitive' or 'detective'
+let mrXPlayerId = null;
+let resolveMrXPromise = null;
+let mrXFallbackApplied = false;
+let randomFallbackApplied = false;
         /* ============================================================
            MAP DATA
            Loaded at runtime from "mini map.json".
@@ -102,6 +112,227 @@ let ticketCounts = {
     red: 10,     // for red routes
     black: 6     // for black routes
 };
+
+function toLocationNumber(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        if (!normalized || normalized === 'hidden') return null;
+        const parsed = parseInt(normalized, 10);
+        return Number.isNaN(parsed) ? null : parsed;
+    }
+    return null;
+}
+
+function persistMrXStartLocation(location, source = 'unknown') {
+    const parsed = toLocationNumber(location);
+    if (parsed === null) return;
+
+    localStorage.setItem(mrXStartStorageKey, String(parsed));
+    console.log(`[MrX] Saved start location ${parsed} from ${source}`);
+}
+
+function getStoredMrXStartLocation() {
+    return toLocationNumber(localStorage.getItem(mrXStartStorageKey));
+}
+
+function getPlayerRandomStartStorageKey(targetPlayerId) {
+    return gameId ? `randomStart:${gameId}:${targetPlayerId}` : `randomStart:${targetPlayerId}`;
+}
+
+function getStoredRandomStart(targetPlayerId) {
+    return toLocationNumber(localStorage.getItem(getPlayerRandomStartStorageKey(targetPlayerId)));
+}
+
+function persistRandomStart(targetPlayerId, location) {
+    const parsed = toLocationNumber(location);
+    if (parsed === null) return;
+    localStorage.setItem(getPlayerRandomStartStorageKey(targetPlayerId), String(parsed));
+}
+
+function hashStringToSeed(value) {
+    let hash = 0;
+    for (let i = 0; i < value.length; i++) {
+        hash = ((hash << 5) - hash) + value.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash);
+}
+
+function pickDeterministicRandomStart(occupiedLocations = []) {
+    if (!mapData || !Array.isArray(mapData.locations) || mapData.locations.length === 0) {
+        return null;
+    }
+
+    const occupiedSet = new Set(
+        occupiedLocations
+            .map(toLocationNumber)
+            .filter(loc => loc !== null)
+    );
+
+    const candidates = mapData.locations
+        .map(loc => loc.location)
+        .filter(loc => !occupiedSet.has(loc));
+
+    const pool = candidates.length > 0 ? candidates : mapData.locations.map(loc => loc.location);
+    const seedSource = `${gameId || 'game'}:${playerId || 'player'}:${Date.now()}`;
+    const seed = hashStringToSeed(seedSource);
+    return pool[seed % pool.length];
+}
+
+function applyRandomFallbackStart(players = []) {
+    const meId = parseInt(playerId, 10);
+    const storedStart = getStoredRandomStart(meId);
+    const occupied = Array.isArray(players) ? players.map(p => p.location) : [];
+    const chosenStart = storedStart ?? pickDeterministicRandomStart(occupied);
+
+    if (chosenStart === null) return;
+
+    persistRandomStart(meId, chosenStart);
+    currentPosition = chosenStart;
+    updatePlayerPiecePosition();
+    highlightCurrentLocation();
+    document.getElementById('currentPosition').textContent = currentPosition;
+
+    if (myRole === 'fugitive') {
+        persistMrXStartLocation(chosenStart, 'random-fallback');
+    }
+
+    randomFallbackApplied = true;
+}
+
+function renderMovementLog(startLocation, moves = [], statusMessage = '') {
+    const movementLog = document.getElementById('movementLog');
+    if (!movementLog) return;
+
+    movementLog.innerHTML = '';
+
+    if (statusMessage) {
+        const status = document.createElement('div');
+        status.textContent = statusMessage;
+        status.style.fontStyle = 'italic';
+        status.style.marginBottom = '8px';
+        movementLog.appendChild(status);
+    }
+
+    const startLine = document.createElement('div');
+    startLine.style.fontWeight = 'bold';
+    startLine.style.marginBottom = '6px';
+    startLine.textContent = `Start: ${startLocation === null ? 'Unknown' : startLocation}`;
+    movementLog.appendChild(startLine);
+
+    if (!Array.isArray(moves) || moves.length === 0) {
+        const empty = document.createElement('div');
+        empty.textContent = 'No moves yet.';
+        movementLog.appendChild(empty);
+        return;
+    }
+
+    moves.forEach(move => {
+        const moveLine = document.createElement('div');
+        const round = move.round ?? '?';
+        const ticket = typeof move.ticket === 'string' ? move.ticket.toUpperCase() : 'UNKNOWN';
+        const destination = move.destination ?? 'hidden';
+        moveLine.textContent = `R${round} | ${ticket} -> ${destination}`;
+        movementLog.appendChild(moveLine);
+    });
+
+    movementLog.scrollTop = movementLog.scrollHeight;
+}
+
+function applyMrXFallbackIfNeeded() {
+    if (myRole !== 'fugitive' || mrXFallbackApplied) return;
+
+    const fallbackStart = getStoredMrXStartLocation();
+    if (fallbackStart === null) return;
+
+    currentPosition = fallbackStart;
+    updatePlayerPiecePosition();
+    highlightCurrentLocation();
+    document.getElementById('currentPosition').textContent = currentPosition;
+    mrXFallbackApplied = true;
+    showError('Using saved Mr. X start location while waiting for server position.');
+}
+
+async function resolveMrXPlayerId(serverPlayers = []) {
+    if (mrXPlayerId) return mrXPlayerId;
+    if (!Array.isArray(serverPlayers) || serverPlayers.length === 0) return null;
+    if (resolveMrXPromise) return resolveMrXPromise;
+
+    resolveMrXPromise = (async () => {
+        const directRoleMatch = serverPlayers.find(p => p.role === 'fugitive' || p.playerRole === 'fugitive');
+        if (directRoleMatch?.playerId) {
+            mrXPlayerId = parseInt(directRoleMatch.playerId, 10);
+            return mrXPlayerId;
+        }
+
+        const detailResults = await Promise.all(
+            serverPlayers.map(async p => {
+                try {
+                    const response = await fetch(`${API_BASE}/players/${p.playerId}`);
+                    if (!response.ok) return null;
+                    return response.json();
+                } catch {
+                    return null;
+                }
+            })
+        );
+
+        const fugitive = detailResults.find(p => p && p.role === 'fugitive');
+        if (fugitive?.playerId) {
+            mrXPlayerId = parseInt(fugitive.playerId, 10);
+            return mrXPlayerId;
+        }
+
+        // Optional fallback requested by team discussion: host can act as Mr. X anchor.
+        if (isHost && playerId) {
+            mrXPlayerId = parseInt(playerId, 10);
+            return mrXPlayerId;
+        }
+
+        return null;
+    })();
+
+    try {
+        return await resolveMrXPromise;
+    } finally {
+        resolveMrXPromise = null;
+    }
+}
+
+async function refreshMovementLog() {
+    const movementLog = document.getElementById('movementLog');
+    if (!movementLog) return;
+
+    const myId = parseInt(playerId, 10);
+    const targetPlayerId = myRole === 'fugitive' ? myId : mrXPlayerId;
+
+    if (!targetPlayerId) {
+        renderMovementLog(getStoredMrXStartLocation(), [], 'Waiting for Mr. X assignment...');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/players/${targetPlayerId}/moves`);
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const apiStart = toLocationNumber(data.startLocation);
+        if (apiStart !== null) {
+            persistMrXStartLocation(apiStart, 'moves-api');
+        }
+
+        const effectiveStart = apiStart ?? getStoredMrXStartLocation();
+        renderMovementLog(effectiveStart, data.moves || []);
+    } catch (error) {
+        console.error('Failed to load movement log:', error);
+        const fallbackStart = getStoredMrXStartLocation();
+        renderMovementLog(fallbackStart, [], 'Movement history unavailable, using saved Mr. X data.');
+        applyMrXFallbackIfNeeded();
+    }
+}
 
 function chooseRandomStartPosition() {
     if (!mapData || !Array.isArray(mapData.locations) || mapData.locations.length === 0) {
@@ -422,7 +653,7 @@ function executeMove(newPosition) {
     document.querySelectorAll('.ticket-button').forEach(btn => btn.classList.remove('selected'));
 
     // Send move to server
-    fetch(`http://trinity-developments.co.uk/players/${playerId}/moves`, {
+    fetch(`${API_BASE}/players/${playerId}/moves`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -445,6 +676,7 @@ function executeMove(newPosition) {
         ticketCounts[usedTicket]--;
         updateTicketDisplay();
         loadPlayersFromServer(); // refresh all positions from server
+        refreshMovementLog();
     })
     .catch(error => {
         console.error('Move failed:', error);
@@ -511,6 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMyPlayerData();
     loadPlayersFromServer();
     setInterval(loadPlayersFromServer, 3000);
+    setInterval(refreshMovementLog, 4000);
 });
     
     // Set up drag events for the player piece
@@ -545,8 +778,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadPlayersFromServer() {
-    fetch(`http://trinity-developments.co.uk/games/${gameId}`)
-    .then(response => response.json())
+    fetch(`${API_BASE}/games/${gameId}`)
+    .then(response => {
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        return response.json();
+    })
     .then(data => {
         currentGameState = data.state.toLowerCase(); // ← add this line
         
@@ -559,6 +795,17 @@ function loadPlayersFromServer() {
 
         loadMyPosition(players);
         updateOtherPlayersOnMap(players);
+
+        resolveMrXPlayerId(data.players)
+            .then(() => {
+                const mrXOnBoard = players.find(p => p.id === mrXPlayerId);
+                const visibleMrXLocation = toLocationNumber(mrXOnBoard?.location);
+                if (visibleMrXLocation !== null) {
+                    persistMrXStartLocation(visibleMrXLocation, 'game-state');
+                }
+                refreshMovementLog();
+            })
+            .catch(err => console.warn('Could not resolve Mr. X player ID:', err));
     })
     .catch(error => console.error('Failed to load players:', error));
 }
@@ -589,18 +836,32 @@ function updateOtherPlayersOnMap(players) {
 
 function loadMyPosition(players) {
     const me = players.find(p => p.id === parseInt(playerId));
-    if (me && me.location && me.location !== 'Hidden') {
-        currentPosition = parseInt(me.location);
+    const myVisibleLocation = toLocationNumber(me?.location);
+
+    if (myVisibleLocation !== null) {
+        currentPosition = myVisibleLocation;
         updatePlayerPiecePosition();
         highlightCurrentLocation();
         document.getElementById('currentPosition').textContent = currentPosition;
+        mrXFallbackApplied = false;
+        randomFallbackApplied = false;
+
+        if (myRole === 'fugitive') {
+            persistMrXStartLocation(currentPosition, 'my-position');
+        }
+        return;
+    }
+
+    applyMrXFallbackIfNeeded();
+
+    if (myVisibleLocation === null && !mrXFallbackApplied && !randomFallbackApplied) {
+        applyRandomFallbackStart(players);
+        showError('Using randomized start location while waiting for server assignment.');
     }
 }
 
-let myRole = null; // 'fugitive' or 'detective'
-
 function loadMyPlayerData() {
-    fetch(`http://trinity-developments.co.uk/players/${playerId}`)
+    fetch(`${API_BASE}/players/${playerId}`)
     .then(res => res.json())
     .then(data => {
         // Update ticket counts from server
@@ -613,8 +874,15 @@ function loadMyPlayerData() {
         // Store role so we can show/hide controls
         myRole = data.role;
 
+        if (myRole === 'fugitive') {
+            mrXPlayerId = parseInt(playerId, 10);
+            persistMrXStartLocation(data.startLocation || data.location, 'player-data');
+        }
+
         // Update name display
         document.getElementById('playerName').textContent = data.playerName;
+
+        refreshMovementLog();
     })
     .catch(err => console.error('Failed to load player data:', err));
 }
